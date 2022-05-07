@@ -1,6 +1,3 @@
-NB. I tried to keep the lines to <~80 chars,
-    but (especially the Glyph Maps) it was not always realistic.
-
  ,-------.
 (  INDEX  )
  `-------'
@@ -20,129 +17,693 @@ NB. I tried to keep the lines to <~80 chars,
 (  GREETZ  )
  `--------'
 
+If you found this document because you were looking for information on
+"BBC Micro Display Mode 7" or "Teletext" display, you're in luck.
+...Otherwise, you're probably in the wrong place!
+
 Full kudos, and respect to dv8 for his Amazing work on
 	The Remastered BBC User Guide(s)
-
 https://stardot.org.uk/forums/viewtopic.php?t=14024
 https://web.archive.org/web/20220411003228/https://stardot.org.uk/forums/viewtopic.php?t=14024
+...Specifically useful was "48 Appendix" pp486..489
 
-Specifically, the following information was inferred from
-	"48 Appendix" pp486..489
+Many thanks to whomever it was that pushed the Mullard SAA-5050 Datasheet in to
+https://web.archive.org/web/20160303193433/http://www-uxsup.csx.cam.ac.uk/~bjh21/BBCdata/SAA5050.pdf
+
+Other character sets from the 505x series can be found in:
+https://www.datasheetarchive.com/pdf/download.php?id=16a33be2bb921326001ad59425c6a4c7e3f824&type=M&term=SAA5051
+https://datasheet.datasheetarchive.com/originals/distributors/Databooks-3/Book601-819.pdf
+https://web.archive.org/web/20220506021431/https://datasheet.datasheetarchive.com/originals/distributors/Databooks-3/Book601-819.pdf
+
+This is an excellent page of everything you never wanted to know about TV images:
+https://www.britannica.com/technology/television-technology/The-picture-signal
+...Sadly, becuase of the way it loads, archive.org doesn't have it :(
+
+This rather excellent document on Teletext Control Codes:
+https://mdfs.net/Info/Comp/Teletext/Controls
+https://web.archive.org/web/20220506025547/https://mdfs.net/Info/Comp/Teletext/Controls
+
+Some wise words on various Control Codes:
+http://www.riscos.com/support/developers/bbcbasic/part2/teletext.html
+...Excluded from archive.org!?
+
+Some Teletext Art : https://channel26.uk/teletext-design/
+
+This online Teletext screen designers
+	https://zxnet.co.uk/teletext/editor
+	https://edit.tf/
+
+
+--
+Please, good people of the internet,when you find great web-pages, please submit
+them to archive.org, it only takes 30 second
+	# Go to archive.org
+	# Paste the URL in to the WaybackMachine search box
+	# When it says "Wayback Machine has not archived that URL."
+	# Click [Save this URL in the Wayback Machine]
+	# It will ask:  [x] Save error pages (HTTP Status=4xx, 5xx) ...your choice
+	# Click [Save Page]
+
+
+ ,------------.
+(  BBC MODE-7  )
+ `------------'
+
+BBC Mode-7 is actually a special use-case of
+	Mullard SAA-5050 Teletext Character Generator [505x - English (UK) Variant]
+
+The Acorn BBC Micro has some notable anomalies.
+	# Character set is presented as two 256 character fonts
+	# A few strange character re-mappings
+	# Additional Control Codes
+
+
+ ,------------------.
+(  MULLARD SAA-505x  )
+ `------------------'
+
+By current [2022] ways of thinking, the 505x might be thought of as presenting
+"two fonts", but it is a /single/ VDU "Character Set", which all (commonly)
+have/had an "Alphanumeric Mode", and a "Graphics Mode".
+
+When used by television sets to present Teletext, the 505x is (normally) used
+natively, such that it presents a 7-bit {0x00..0x7F} character set.
+	96 Alphanumeric Glyphs - applicable to the language
+	64 Graphic Glyphs      - common to all chips
+	32 Control Characters  - common to all chips
+
+,----------+ +------------------------------------------------------------.
+|   Code   | | 0x00 .. 0x1F  | 0x20 .. 0x3F | 0x40 .. 0x5F | 0x60 .. 0x7F |
+|==========| |===============|==============|==============|==============|
+|  Alpha   | |               |  Low:Alpha   |              | High:Alpha   |
+|~~ Mode ~~+ + Control Codes +~~~~~~~~~~~~~~+~ Mid:Alpha  ~+~~~~~~~~~~~~~~|
+| Graphic  | |               |  Low:Graphic |              | High:Graphic |
+`----------+ +------------------------------------------------------------'
+
+Each Printable (Alphanumeric/Graphic) Glyph is formed on a 6x10 matrix
+	Alphanumeric Glyphs are formed on a 5x9 matrix
+		in the TOP-RIGHT (^>) corner of the 6x10 matrix,
+		leaving ONE pixel to the LEFT (<), and BOTTOM (v) - for Fixed Kerning.
+		Non-Descending glyphs have THREE rows of unused pixels on the BOTTOM.
+	[qv. GLYPH MAPS]
+
+	Graphical Glyphs may be displayed in either
+		# Contiguous Mode
+		# Separated  Mode
+	[qv. GRAPHICAL GLYPH DESIGN]
+
+
+ ,------------------.
+(  LANGUAGE SUPPORT  )
+ `------------------'
+
+There are a total of EIGHT variants of the 505x chip, each characterised by
+a different character sets targetted for various languages:
+	5050 - English (UK) - As used by the Acorn BBC Micro
+	5051 - German
+	5052 - Swedish
+	5053 - Italian
+	5054 - Belgian
+	5055 - US ASCII
+	5056 - Hebrew
+	5057 - Cyrillic
+
+Control Codes       are common to ALL 505x chips.
+Graphical Glyphs    are common to ALL 505x chips.
+Alphanumeric Glyphs   vary between    505x chips. 
+	[qv. GLYPH MAPS]
+
+
+ ,----------------.
+(  HARDWARE RESET  )
+ `----------------'
+
+At Reset, the 505x will default to:
+	# TV Picture  ENabled
+	# Concealed   ENabled
+	# Superimpose DISabled
+
+These features are enabled/disabled by the TV hardware
+...classically with a Remote Control Unit.
+
+Conceal is used to hide Glyphs
+...Eg. The answers to quiz questions.
+
+Superimpose sets the primary background colour to Transparent.
+...Eg. To show subtitles.
+
+
+ ,---------------.
+(  SCREEN LAYOUT  )
+ `---------------'
+
+Each of the (standard) 24+1 {0,1,..23,24} lines of text has 40 character slots.
+
+Broadcast Teletext pages:
+	GENERALLY only use 23 of the 25 available lines.
+		Line 0  is reserved for {Page Search, Service Name, Time, ...}
+		Line 24 is reserved for FastText/Colour Button functions.
+	COMMONLY only use 39 of the 40 available character slots per line.
+		Column 0 is COMMONLY reserved for the initial Colour Control Code.
+
+This document uses Text Coordinates:
+	The Top-Left     (^<) corner is { 0, 0}
+	The Bottom-Right (v>) corner is {24,39}
+	
+
+		 ,-- x=0                  ,-- x=39
+		 V                        V
+		+--------------------------+
+		|_P100___Teletext____14:30_| <-- y=0  : Title
+		|                          | <--,
+		|                          |     '
+		|                          | :    '
+		|                          |       )-- y=1..23 : Body
+		|                          | :    ,
+		|                          |     ,
+		|__________________________| <--'
+		| INDEX  SPORT  NEWS  HELP | <-- y=24 : Status
+		+--------------------------+
+		                          ^--- {24,39}
+
+The screen is filled one line at a time, starting at {0,0}
+
+On the 505x, There are NO Control Codes to position the cursor.
+Therefore EVERY Line   REQUIRES exactly  40  Codes
+      and EVERY Screen REQUIRES exactly 24+1 Lines
+Making each screen FULL of data be exactly (25 * 40 = 1000) bytes
+	  
+Mode-7 adds SEVEN Cursor Positioning Control Codes:
+	{Up, Down, Left, Right, Start-of-Line, Start-of-Screen, Go-To}
+All these codes exist in the Mode-7 Control Code Range {0x00..0x1F}
+
+
+ ,----------------.
+(  LINE OPERATION  )
+ `----------------'
+
+At the start of EVERY display line, the 505x State Machine is reset to:
+	Background: Black
+	Text/Alpha: White ("alpha" as in "alphanumerics", NOT 'transparency')
+	Flash     : Off         !on
+	Height    : Normal      !double
+	Graphics  : Contiguous  !spaced
+	Graphics  : Release     !hold
+...Notably, EVERY line starts in Alphanumeric Mode
+
+EVERY Code sent to the VDU occupies exactly ONE character cell.
+...This INcludes ALL Control Codes (mapped or otherwise).
+
+
+ ,-------------.
+(  PIXEL RATIO  )
+ `-------------'
+
+Assuming 24 lines of text (eschewing the "+1" Status Line),
+each 40 characters long, Teletext COMMONLY renders Pixels with
+a Pixel Ratio of 1.33:1 .. {(40*6*1.33 = 320) x (24*10 = 240)}  {WxH}
+to achieve a 4:3 IMAGE aspect ratio suitable for a 'standard' 4:3 CRT.
+
+Furthermore each Glyph Pixel is COMMONLY rendered as a 2x2 Screen Pixel.
+This allows the rendering of Half Pixels for use in Font Smoothing.
+[qv. FONT SMOOOTHING]
+
+
+ ,----------------.
+(  FONT SMOOTHING  )
+ `----------------'
+
+...I've yet to properly understand this
+...it's in the datasheet ...in what reads like 'ancient Egyptian'
+
+
+ ,-------.
+(  BOXES  )
+ `-------'
+
+Commonly used for subtitles, 
+Boxes allow you to specify regions of the Screen which will be rendered.
+This effects BOTH Glyph rendering AND Background colour.
+
+To begin a region, you must send TWO Box-Start Control Codes
+The first  will be invisible,
+The second will render (as a space, by default).
+
+In Subtitle Mode, only areas of each line prefixed with Box-Start are rendered.
+Rendering may be stopped with TWO Box-End Controls
+The first  will render (as a space, by default).
+The second will be invisible,
+
+If no Box-End is found on the line, 
+...Box Mode will be disabled automatically at the end of the line
+
+You MAY set the Background colour BEFORE you Box-Start
+...So you CAN control the COLOUR of the first charcater
+
+You MAY "Hold" a Graphic Glyph for use as the first character.
+
+
+ ,----------------.
+(  FLASH HARDWARE  )
+ `----------------'
+
+Both Alphanumeric and Graphic Glyphs may be set to Flash
+
+The flash ratio is 3:1 (ON:OFF)
+
+The 505x datasheet suggests that should be driven by a 0.75Hz clock
+...which would give: 3.99:1.33 seconds ...Yeah, probably not :/
+
+Flashing does NOT swap the Background and Foreground colours.
+The Background will remain constant, 
+  and the Glyph will only be rendered during the ON phase.
+  
+
+ ,--------------.
+(  CONCEAL MODE  )
+ `--------------'
+
+The 505x has the ability to Conceal (hide) Glyphs.
+These Glyphs can be Revealed by the User (often with a TV Remote Control Unit).
+
+Typically, you might Conceal the answers to a question.
+The user can press [Show|Hide] to disable Conceal mode and check their guess. 
+Normally a second press of [Show|Hide] re-enables Conceal mode.
+
+Simply, for any given Glyph:
+	if ((glyphMode == Conceal) && (userMode == Hide)) 
+		Do NOT render the Glyph.
+
+...or inversely:
+	if ((glyphMode == Reveal) || (userMode == Show)) 
+		Render the Glyph.
+
+As with Flash, Conceal Mode does NOT conceal the Background Colour,
+it simply fails to render the Glyph.
+
+
+ ,---------------.
+(  DOUBLE HEIGHT  )
+ `---------------'
+
+Double height text is exactly that, a Y scaling of 2
+
+Every Glyph Pixel is rendered double-height
+
+Double Height Glyphs take up exactly TWO lines of the screen
+
+The FIRST  line  {n}  MAY contain BOTH Single and Double Height Glyphs.
+The SECOND line {n+1} MAY contain ONLY            Double Height Glyphs.
+
+Mode-7 DOES/MAY allow Single Height Glyphs on the SECOND {n+1} line.
+	[depending on what documentation you read]
+
+BOTH lines MUST contain the same Glyphs, 
+and MUST BOTH contain the Double-Height Control Code.
+
+The Specification simply says
+	"...you must arrange for two consecutive display rows to contain identical data"
+
+The Jury seems out as to whether you can or can't 
+make the top & bottom halves {n} & {n+1} different colours <shrug>
+
+I wonder what happens if the lines have "aaa" on the top an "bbb" the bottom!?
+...Can only think of one way to find out :/
+
+	__      ___      __
+	  .#####   .#####  
+	  .#....   .#####  
+	  .#....   .#....  
+	  .####.   .#....  
+	  .#....   .#....   {n}
+	  .#....   .#....  
+	  .#####   .####.  
+	  ......   .####.  
+	  ......   .#....  
+	__......___.#....__
+	           .#....  
+	           .#....  
+	           .#....  
+	           .#####  
+	           .#####  
+	           ......   {n+1}
+	           ......  
+	           ......  
+	           ......  
+	           ......  
+	           ......  
+	           ......  
+	___________......__
+	
+
+ ,---------------.
+(  GRAPHICS MODE  )
+ `---------------'
+
+ANY  Alpha  Colour Control Code, sets the 505x to Alphanumeric Mode
+ANY Graphic Colour Control Code, sets the 505x to   Graphics   Mode
+
+When the 505x is in Graphics Mode,
+  the Graphics-Contiguous and Graphics-Spaced
+  and Graphics-Hold       and Graphics-Release Control Codes are enabled.
+These Control Codes are commonly, and often cleverly, used in Teletext Art.
+
+There may be any number of Contiguous and Spaced Codes on any line.
+	Reading from left-to-right along a single line:
+		Contiguous: FUTURE Sixels will adjoin
+		Space     : FUTURE Sixels will be spaced
+	[qv. GRAPHICAL GLYPH DESIGN]
+
+There may be any number of Hold and Release Codes on any line.
+	Reading from left-to-right along a single line:
+		Release: FUTURE Control Codes will map to to SPACE {0x20}.
+		Hold   : FUTURE Control Codes will map to
+		                      the most recent Graphics Glyph used on this line.
+	Hold DOES maintain the current Contiguous/Space Mode.
+	Most notably, in a "Hold...Release" scenario, the Release Code WILL map to
+	                        "the most recent Graphics Glyph used on this line".
+
+
+ ,---------------.
+(  GLYPH SCALING  )
+ `---------------'
+
+For accurate rendering, the Glyphs should be scaled to match the Pixel Ratio.
+
+The 1.33:1 Pixel scaling is, in the analogue world, performed by clock skewing.
+...As this is not available to us in the digital world, I proffer these ideas:
+
+THREE-BY-THREE
+==============
+
+Scaling for 3x3 is trivial and perfect.
+
+Simply render each 1x1 Glyph Pixel as 4x3 Screen Pixels.
+
+For a full Teletext render you will need a screen resolution of:
+	40*(6*(3*1.33)) x (24  )*(10*3)  ==  960 x 720  {WxH}
+	40*(6*(3*1.33)) x (24+1)*(10*3)  ==  960 x 750
+
+TWO-BY-TWO
+==========
+
+The 505x renders each 1x1 Glyph Pixel as a 2x2 Screen Pixels.
+...So this is a very realistic choice
+
+For a full Teletext render you will need a screen resolution of:
+	40*(6*(2*1.33)) x (24  )*(10*2)  ==  640 x 480  {WxH}
+	40*(6*(2*1.33)) x (24+1)*(10*2)  ==  640 x 500
+
+This idea also effectively performs a modicum of Alphanumeric Glyph Smoothing.
+
+ALPHANUMERIC EXAMPLES
+=====================
+
+     Glyph       Doubled        Adjust Ratio          Fill Gaps
+	|----|    |----------|    |---v--v--v--v-|    |---v--v--v--v-|
+	
+    .#....    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    .#....    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    .#....    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    .#....    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    .#...#    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    ....##    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    ...#.#    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    ...###    ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+    .....#    ..##......##    ..##'..'..'..'##    ..##'..'..'..'##
+    ......    ..##......##    ..##'..'..'..'##    ..##'..'..'...##
+              ........####    ....'..'..'##'##    ....'..'..'##=##
+              ........####    ....'..'..'##'##    ....'..'../##=##
+              ......##..##    ....'..'##'..'##    ....'..'##/.. ##
+              ......##..##    ....'..'##'..'##    ....'..'## .. ##
+              ......######    ....'..'##'##'##    ....'..'##=##=##
+              ......######    ....'..'##'##'##    ....'..'##=##=##
+              ..........##    ....'..'..'..'##    ....'..'..'...##
+              ..........##    ....'..'..'..'##    ....'..'..'..'##
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+
+
+    ..###.    ....######..    ....'##'##'##'..    ....'##=##=##'..
+    .#...#    ....######..    ....'##'##'##'..    ..../##=##=##\..
+    .....#    ..##......##    ..##'..'..'..'##    ..##/..'..'..\##
+    ...##.    ..##......##    ..##'..'..'..'##    ..##'..'..'..'##
+    ..#...    ..........##    ....'..'..'..'##    ....'..'..'..'##
+    .#....    ..........##    ....'..'..'..'##    ....'..'..'../##
+    .#####    ......####..    ....'..'##'##'..    ....'..'##=##/..
+    ......    ......####..    ....'..'##'##'..    ....'../##=##'..
+    ......    ....##......    ....'##'..'..'..    ....'##/..'..'..
+    ......    ....##......    ....'##'..'..'..    ..../##'..'..'..
+              ..##........    ..##'..'..'..'..    ..##/..'..'..'..
+              ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+              ..##########    ..##'##'##'##'##    ..##=##=##=##=##
+              ..##########    ..##'##'##'##'##    ..##=##=##=##=##
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+
+GRAPHICAL EXAMPLES
+==================
+
+    ###...    ######......    ####'##'..'..'..    ####=##=..'..'..
+    ###...    ######......    ####'##'..'..'..    ####=##=..'..'..
+    ###...    ######......    ####'##'..'..'..    ####=##=..'..'..
+    ...###    ######......    ####'##'..'..'..    ####=##=..'..'..
+    ...###    ######......    ####'##'..'..'..    ####=##=..'..'..
+    ...###    ######......    ####'##'..'..'..    ####=##=..'..'..
+    ...###    ......######    ....'..'##'##'##    ....'..'##=##=##
+    ######    ......######    ....'..'##'##'##    ....'..'##=##=##
+    ######    ......######    ....'..'##'##'##    ....'..'##=##=##
+    ######    ......######    ....'..'##'##'##    ....'..'##=##=##
+              ......######    ....'..'##'##'##    ....'..'##=##=##
+              ......######    ....'..'##'##'##    ....'..'##=##=##
+              ......######    ....'..'##'##'##    ....'..'##=##=##
+              ......######    ....'..'##'##'##    ....'..'##=##=##
+              ############    ####'##'##'##'##    ####=##=##=##=##
+              ############    ####'##'##'##'##    ####=##=##=##=##
+              ############    ####'##'##'##'##    ####=##=##=##=##
+              ############    ####'##'##'##'##    ####=##=##=##=##
+              ############    ####'##'##'##'##    ####=##=##=##=##
+              ############    ####'##'##'##'##    ####=##=##=##=##
+
+                                                      <  <  >  >
+
+    .##...    ..####......    ..##'##'..'..'..    ..##=##=..'..'..
+    .##...    ..####......    ..##'##'..'..'..    ..##=##=..'..'..
+    ......    ..####......    ..##'##'..'..'..    ..##=##=..'..'..
+    ....##    ..####......    ..##'##'..'..'..    ..##=##=..'..'..
+    ....##    ............    ....'..'..'..'..    ....'..'..'..'..
+    ....##    ............    ....'..'..'..'..    ....'..'..'..'..
+    ......    ........####    ....'..'..'##'##    ....'..'..=##=##
+    .##.##    ........####    ....'..'..'##'##    ....'..'..=##=##
+    .##.##    ........####    ....'..'..'##'##    ....'..'..=##=##
+    ......    ........####    ....'..'..'##'##    ....'..'..=##=##
+              ........####    ....'..'..'##'##    ....'..'..=##=##
+              ........####    ....'..'..'##'##    ....'..'..=##=##
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ..####..####    ..##'##'..'##'##    ..##=##=..=##=##
+              ..####..####    ..##'##'..'##'##    ..##=##=..=##=##
+              ..####..####    ..##'##'..'##'##    ..##=##=..=##=##
+              ..####..####    ..##'##'..'##'##    ..##=##=..=##=##
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
 
 
  ,--------.
-(  MODE-7  )
+(  MY TOY  )
  `--------'
 
-By current [2022] ways of thinking, Mode-7 might be thought of as
-"two extended fonts", but it is a /single/ VDU "Character Set", which
-(commonly) has an "Alphanumeric Mode", and a "Graphics Mode".
+The toy I am making uses a (rather nice) 4:3 {320x240} IPS screen.
+So assuming an aspect ratio of 1.33:1, and only 24 lines of text, we have a win!
 
-Mode-7 is an 8bit Character Set, so each Mode has 256 entries.
-These entries are split between "Glyphs" and "Control Codes".
-  # Glyphs        are     Printable Characters: {Letters, Numbers, Symbols, Graphics}
-  # Control Codes are Non-Printable Characters: {Move cursor, Select colour, ...}
-      and are used to control the State Machine in the VDU hardware
+However it is only 2.0" in diameter giving me dimensions of
+	{~40 x ~30}mm of screen estate
+That would make each Glyph {1.2 x 1.0}mm ...which is ridiculously tiny :(
 
-There Exists:
-  # A total of (256 * 2 = 512) Glyphs/Controls
-    # 256 in Alphanumeric Mode
-    # 256 in Graphics Mode
-  # Some unused/unmapped [Control] values (denoted "-x-")
-  # Some ASCII   Controls  {BEL, BS, ...}
-  # Some Bespoke Controls  {MODE_*, INK_*,, ...}
-  # Some ASCII   Glyphs    {0-9, A-Z, ...}
-  # Some Bespoke Glyphs    {Arrows, Fractions, ...}
-  # A complete set of 64 {2x3} Graphical Glyphs
+So I have the choice:
+	# Render classic Teletext pages in a "ridiculously tiny" font
+	# DOUBLE the size of every pixel but:
+	    Be limited to 12 lines x 20 characters
+		Characters will scale NICELY
+		Glyph Smoothing can be AUTHENTIC [qv. 505x]
+		Text will be readable
+	# TRIPLE the size of every pixel but:
+	    Be limited to 8 lines x 13 characters
+		Characters will scale PERFECTLY
+		Glyph Smoothing will be APPROXIMATE
+		Text will be EASILY readable
 
-If you don't know why you might want it ...You don't want it.
+NB. If you sextuple (6x6) the size of each pixel, 
+    you can have perfect scaling AND authentic smoothing.
+	But you will need a screen of resolution:
+        40*(6*(6*1.33)) x (24  )*(10*6)  ==  1920 x 1440  {WxH}
+        40*(6*(6*1.33)) x (24+1)*(10*6)  ==  1920 x 1500
 
- ,---------------.
-(  CONTROL TABLE  )
- `---------------'
 
-Controls are the same regardless of Mode {Alpha, Graphic}.
 
-,-------------------------------------.
-| Dec | Hex | ASCII | Alpha / Graphic |
-|-----|-----|-------|-----------------|
-|   0 |  00 |  NUL  | -x-             | -x- Unmapped
-|   1 |  01 |  SOH  | PRINT_NEXT      |
-|   2 |  02 |  STX  | PRINT_START     |
-|   3 |  03 |  ETX  | PRINT_STOP      |
-|   4 |  04 |  EOT  | -x-             |
-|   5 |  05 |  ENQ  | -x-             |
-|   6 |  06 |  ACK  | VDU_ENABLE      |
-|   7 |  07 |  BEL  | BEEP            |
-|   8 |  08 |  BS   | CUR_BACK        |
-|   9 |  09 |  TAB  | CUR_FORWARD     |
-|  10 |  0A |  LF   | CUR_DOWN        |
-|  11 |  0B |  VT   | CUR_UP          |
-|  12 |  0C |  FF   | VDU_CLS         |
-|  13 |  0D |  CR   | CUR_CR          |
-|  14 |  0E |  SO   | MODE_PAGED      |
-|  15 |  0F |  SI   | MODE_SCROLL     |
-|-----|-----|-------|-----------------|
-|  16 |  10 |  DLE  | -x-             |
-|  17 |  11 |  DC1  | -x-             |
-|  18 |  12 |  DC2  | -x-             |
-|  19 |  13 |  DC3  | -x-             |
-|  20 |  14 |  DC4  | -x-             |
-|  21 |  15 |  NAK  | VDU_DISABLE     |
-|  22 |  16 |  SYN  | MODE_SELECT     |
-|  23 |  17 |  ETB  | CHR_PROGRAM     |
-|  24 |  18 |  CAN  | -x-             |
-|  25 |  19 |  EM   | -x-             |
-|  26 |  1A |  SUB  | -x-             |
-|  27 |  1B |  ESC  | -x-             |
-|  28 |  1C |  FS   | -x-             |
-|  29 |  1D |  GS   | -x-             |
-|  30 |  1E |  RS   | CUR_HOME        |
-|  31 |  1F |  US   | CUR_MOVE        |
-|-----|-----|-------|-----------------|
-|  :  |     |   :   |    :            | 32..126 (0x20..0x7E) are
-|  :  |     |   :   |    :            |    Printable Glyphs [see next table]
-| 127 |  7F |  DEL  | DELETE          |
-|-----|-----|-------|-----------------|
-| 128 |  80 |       | -x-             | ASCII is a 7bit character set
-| 129 |  81 |       | ALPHA_RED       |   and therefore stops at chr(127)
-| 130 |  82 |       | ALPHA_GRN       |
-| 131 |  83 |       | ALPHA_YEL       |
-| 132 |  84 |       | ALPHA_BLU       |
-| 133 |  85 |       | ALPHA_MAG       |
-| 134 |  86 |       | ALPHA_CYN       |
-| 135 |  87 |   *   | ALPHA_WHT       |
-| 136 |  88 |       | ATTR_FLASH      |
-| 137 |  89 |   *   | ATTR_STEADY     | * Every character line on the VDU
-| 138 |  8A |       | -x-             |     is (effectively) prefixed
-| 139 |  8B |       | -x-             |        with these attributes
-| 140 |  8C |   *   | HEIGHT_NORMAL   |
-| 141 |  8D |       | HEIGHT_DOUBLE   |
-| 142 |  8E |       | -x-             |
-| 143 |  8F |       | -x-             |
-|-----|-----|-------|-----------------|
-| 144 |  90 |       | -x-             |
-| 145 |  91 |       | INK_RED         |
-| 146 |  92 |       | INK_GRN         |
-| 147 |  93 |       | INK_YEL         |
-| 148 |  94 |       | INK_BLU         |
-| 149 |  95 |       | INK_MAG         |
-| 150 |  96 |       | INK_CYN         |
-| 151 |  97 |       | INK_WHT         |
-| 152 |  98 |       | DISP_CONCEAL    |
-| 153 |  99 |   *   | GRAPH_CONTIG    |
-| 154 |  9A |       | GRAPH_SPACED    |
-| 155 |  9B |       | -x-             |
-| 156 |  9C |   *   | PAPER_BLACK     |
-| 157 |  9D |       | PAPER_NEW       |
-| 158 |  9E |       | GRAPH_HOLD      |
-| 159 |  9F |   *   | GRAPH_RELEASE   |
-`-------------------------------------'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ,-------------------.
+(  BACKGROUND COLOUR  )
+ `-------------------'
+
+The Background Colour is, by reset to Black at the Start of each line.
+
+Changing the background colour requires TWO (or, arguably THREE) codes:
+Each of these codes DOES occupy a Character Cell on the VDU.
+
+	1. Alpha/Graphic Colour (of desired Background Colour) [*Eg. Red]
+	2. New Background
+	   ...THIS *and* FUTURE Glyphs will be displayed as *Red-on-Red
+	3. Alpha/Graphic Colour (of desired Ink Colour)        [*Eg. Yellow]
+	   ...THIS *and* FUTURE Glyphs will be displayed as *Yellow-on-Red
+	
+
+
+
+
+
+
+
+ ,----------------.
+(  CONTROL TABLES  )
+ `----------------'
+
+Control Codes are the same in ALL variants of the 505x and
+regardless of Mode {Alpha, Graphic}.
+
+Although the Control Codes are all 7-bit {0..6} values in the range {0x00..0x1F}
+They are COMMONLY referred to as if bit-7 (2^7) were Set, ie. (0x80..0x9F}
+
+,------------------------------------.
+|     Hex    | Control Code  | Notes |
+| 505x | BBC |               |       |
+|------|-----|---------------|-------|
+|  00  |  80 | NUL           |     X |  X  Not available in BBC Mode-7
+|  01  |  81 | ALPHA_RED     |       |  
+|  02  |  82 | ALPHA_GRN     |       |  
+|  03  |  83 | ALPHA_YEL     |       |
+|  04  |  84 | ALPHA_BLU     |       |  
+|  05  |  85 | ALPHA_MAG     |       |
+|  06  |  86 | ALPHA_CYN     |       |  
+|  07  |  87 | ALPHA_WHT     | *     |  *  Every character line on the VDU
+|  08  |  88 | ATTR_FLASH    |       |       is (effectively) prefixed
+|  09  |  89 | ATTR_STEADY   | *     |          with these attributes
+|  0A  |  8A | BOX_END       |     X | 
+|  0B  |  8B | BOX_START     |     X | 
+|  0C  |  8C | HEIGHT_NORMAL | *     |
+|  0D  |  8D | HEIGHT_DOUBLE |       |
+|  0E  |  8E | S0            |   % X |  %  "Reserved for compatibility"
+|  0F  |  8F | S1            |   % X |
+|------|-----|---------------|-------|
+|  10  |  90 | DLE           |   % X |
+|  11  |  91 | GRAPH_RED     |       |
+|  12  |  92 | GRAPH_GRN     |       |
+|  13  |  93 | GRAPH_YEL     |       |  
+|  14  |  94 | GRAPH_BLU     |       |  
+|  15  |  95 | GRAPH_MAG     |       |  
+|  16  |  96 | GRAPH_CYN     |       |  
+|  17  |  97 | GRAPH_WHT     |       |  
+|  18  |  98 | DISP_CONCEAL  |       |  
+|  19  |  99 | GRAPH_CONTIG  | *     |  
+|  1A  |  9A | GRAPH_SPACED  |       |
+|  1B  |  9B | ESC           |   % X |
+|  1C  |  9C | PAPER_BLACK   | *     |
+|  1D  |  9D | PAPER_NEW     |       |
+|  1E  |  9E | GRAPH_HOLD    |       |
+|  1F  |  9F | GRAPH_RELEASE | *     |
+`------------------------------------'
+
+This dual-numbering seems irrational, until you appreciate that on the BBC Micro 
+(which brought the 5050 chip to the home user), "Mode-7" REQUIRES that the 
+505x Control Codes are sent with bit-7 Set 
+...BBC Mode-7 Controls Codes with bit-7 Clear are specific to the BBC Micro.
+
+,----------------------------------.
+| Dec | Hex | ASCII | Control Code |
+|-----|-----|-------|--------------|
+|   0 |  00 |  NUL  | -x-          | -x- Unmapped
+|   1 |  01 |  SOH  | PRINT_NEXT   |
+|   2 |  02 |  STX  | PRINT_START  |
+|   3 |  03 |  ETX  | PRINT_STOP   |
+|   4 |  04 |  EOT  | -x-          |
+|   5 |  05 |  ENQ  | -x-          |
+|   6 |  06 |  ACK  | VDU_ENABLE   |
+|   7 |  07 |  BEL  | BEEP         |
+|   8 |  08 |  BS   | CUR_BACK     |
+|   9 |  09 |  TAB  | CUR_FORWARD  |
+|  10 |  0A |  LF   | CUR_DOWN     |
+|  11 |  0B |  VT   | CUR_UP       |
+|  12 |  0C |  FF   | VDU_CLS      |
+|  13 |  0D |  CR   | CUR_CR       |
+|  14 |  0E |  SO   | MODE_PAGED   |
+|  15 |  0F |  SI   | MODE_SCROLL  |
+|-----|-----|-------|--------------|
+|  16 |  10 |  DLE  | -x-          |
+|  17 |  11 |  DC1  | -x-          |
+|  18 |  12 |  DC2  | -x-          |
+|  19 |  13 |  DC3  | -x-          |
+|  20 |  14 |  DC4  | -x-          |
+|  21 |  15 |  NAK  | VDU_DISABLE  |
+|  22 |  16 |  SYN  | MODE_SELECT  |
+|  23 |  17 |  ETB  | CHR_PROGRAM  |
+|  24 |  18 |  CAN  | -x-          |
+|  25 |  19 |  EM   | -x-          |
+|  26 |  1A |  SUB  | -x-          |
+|  27 |  1B |  ESC  | -x-          |
+|  28 |  1C |  FS   | -x-          |
+|  29 |  1D |  GS   | -x-          |
+|  30 |  1E |  RS   | CUR_HOME     |
+|  31 |  1F |  US   | CUR_MOVE     |
+|-----|-----|-------|--------------|
+|  :  |     |   :   |    :         | 32..126 (0x20..0x7E) are
+|  :  |     |   :   |    :         |    Printable Glyphs [see next table]
+| 127 |  7F |  DEL  | DELETE       |
+`----------------------------------'
 
 
  ,------------------------.
 (  GRAPHICAL GLYPH DESIGN  )
  `------------------------'
+
+The Graphical Glyphs are formed from SIX (oversized) pixels known as "Sixels"
+
+The top and bottom row   of Sixels are THREE pixels heigh
+The    middle      row   of Sixels are FOUR  pixels heigh
+Both             columns of Sixels are THREE pixels wide
+
+For artistic reasons [ASCII art has its limitations], in this section,
+a SINGLE screen pixel is shown as TWO characters wide {'  ', 'xx', '##'}
+
 
                |  +1 |  +2  | <----+--- little-endian
 								   |
@@ -151,7 +712,7 @@ Controls are the same regardless of Mode {Alpha, Graphic}.
      |    3    |      xx##xx|  = "--2"  `.     Digits are effectively base-4
      |   _v_  _|______##xx##|_            \           Ie. {0..3} [2 bits/digit]
      |    ^    |##xx##|     |              \
-     |    4    |xx##xx|     |  = "-1-"      > "012"
+     |    4    |xx##xx|     |  = "-1-"      > "012"  <-- Sixel name
     10    |    |##xx##|     |              /   ^^^
      |   _v_  _|xx##xx|_____|_            /    |||
      |    ^    |      |     |            ,     ||`--- Top row [last]
@@ -164,9 +725,237 @@ Controls are the same regardless of Mode {Alpha, Graphic}.
            \_  |<----6----->|
 
 
+This numbering system implies that the Sixels exist in the character set
+in increasing numerical order.
+
+There is also a "Separated Graphics Mode", in which each Glyph is missing
+ONE pixel from the LEFT and BOTTOM of each Sixel.
+
+"Separated Graphics Mode" does NOT imply a second set of Graphical Glyphs,
+but a different way to render the Glyph data.
+
+Here {'..', ',,'} is used to highlight which pixels are rendered as 'unplotted'.
+
+               |  +1 |  +2  | <----+--- little-endian
+								   |
+    ___  ___   +-----|------+      V
+     ^    ^    |..    ,,xx##|          _
+     |    3    |..    ,,##xx|  = "--2"  `.     Digits are effectively base-4
+     |   _v_  _|..,,..,,..,,|_            \           Ie. {0..3} [2 bits/digit]
+     |    ^    |..xx##,,    |              \
+     |    4    |..##xx,,    |  = "-1-"      > "312"  <-- Sixel name
+    10    |    |..xx##,,    |              /   ^^^
+     |   _v_  _|..,,..,,....|_            /    |||
+     |    ^    |..xx##,,xx##|            ,     ||`--- Top row [last]
+     |    3    |..xx##,,xx##|  = "3--" _.      |`---- Middle row
+    _V_  _v_   |..,,..,,..,,|                  `----- Bottom row [first]
+               +------|-----+
+
+    \          |<-3-> |<-3->|
+     Pixels
+           \_  |<----6----->|
+
+
  ,-------------.
 (  GLYPH TABLE  )
  `-------------'
+
+BBC Mode-7 presents 256 Character codes.
+
+If the top-bit, bit-7, (2^7) is SET   {1}, the BBC behaves like a 5050 (UK) device.
+If the top-bit, bit-7, (2^7) is CLEAR {0}, the BBC behaves like a 5050 with anomalies.
+
+								this needs to be finished
+								
+,-------------------------------------.-------.-------.-------.-------.-------.-------.-------.-------.
+|     |     |       |  MODE7  | 505x  | 5050  | 5051  | 5052  | 5053  | 5054  | 5055  | 5056  | 5057  |
+| Dec | Hex | ASCII |   b7=0  | Graph | EN_UK |  DEU  |  SWE  |  ITA  |  BEL  | EN_US |  HEB  |  RUS  |
+|     |     |       | Gr | Al |       |       |       |       |       |       |       |       |       |
+|-----|-----|-------|---------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+|  32 |  20 |  SPC  |         |  000  |  SPC  |  SPC  |  SPC  |  SPC  |  SPC  |  SPC  |  SPC  |  SPC  | <-- All
+|  33 |  21 |   !   |         |  001  |   !   |   !   |   !   |   !   |   !   |   !   |   !   |   !   | <-- All
+|  34 |  22 |   "   |         |  002  |   "   |   "   |   "   |   "   |   "   |   "   |   "   |   "   | <-- All
+|     |     |       |----|----|       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  35 |  23 |   #   | #  | #  |  003  |  GBP  |   #   |   #   |  GBP  |   e'  |   #   |  GBP  |   #   | <-- 3
+|     |     |       |----|----|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+|  36 |  24 |   $   |         |  010  |   $   |   $   | SPLAT |   $   |   i"  |   $   |   $   |   $   | <-- 3
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  37 |  25 |   %   |         |  011  |   %   |   %   |   %   |   %   |   %   |   %   |   %   |   %   | <-- All
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  38 |  26 |   &   |         |  012  |   &   |   &   |   &   |   &   |   &   |   &   |   &   |   bl  | <-- !RUS
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  39 |  27 |   '   |         |  013  |   '   | LNG ' | LNG ' |   '   |   '   |   '   |   '   |   '   | <-- 2
+|     |     |       |         |-------|-------|-------|-------|-------|-------|-------|-------|-------|
+|  40 |  28 |   (   |         |  020  |   (   |   (   |   (   |   (   |   (   |   (   |   (   |   (   | <-- All
+|  41 |  29 |   )   |         |  021  |   )   |   )   |   )   |   )   |   )   |   )   |   )   |   )   | <-- All
+|  42 |  2A |   *   |         |  022  |   *   |   *   |   *   |   *   |   *   |   *   |   *   |   *   | <-- All
+|  43 |  2B |   +   |         |  023  |   +   |   +   |   +   |   +   |   +   |   +   |   +   |   +   | <-- All
+|     |     |       |         |-------|-------|-------|-------|-------|-------|-------|-------|-------|
+|  44 |  2C |   ,   |         |  030  |   ,   | LOW , | LOW , |   ,   |   ,   |   ,   |   ,   |   ,   | <-- 2
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  45 |  2D |   -   |         |  031  |   -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   | <-- All
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  46 |  2E |   .   |         |  032  |   .   | BLD . | BLD . |   .   |   .   |   .   |   .   |   .   | <-- 2
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  47 |  2F |   /   |         |  033  |   /   |   /   |   /   |   /   |   /   |   /   |   /   |   /   | <-- All
+|-----|-----|-------|         |-------|-------|-------|-------|-------|-------|-------+-------+-------+
+|  48 |  30 |   0   |         |  100  |   0   |   0   |   0   |   0   |   0   |   0   |   0   |   0   | <-- All
+|  49 |  31 |   1   |         |  101  |   1   |   1   |   1   |   1   |   1   |   1   |   1   |   1   | <-- All
+|  50 |  32 |   2   |         |  102  |   2   |   2   |   2   |   2   |   2   |   2   |   2   |   2   | <-- All
+|  51 |  33 |   3   |         |  103  |   3   |   3   |   3   |   3   |   3   |   3   |   3   |   3   | <-- All
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+|  52 |  34 |   4   |         |  110  |   4   |   4   |   4   |   4   |   4   |   4   |   4   |   4   | <-- All
+|  53 |  35 |   5   |         |  111  |   5   |   5   |   5   |   5   |   5   |   5   |   5   |   5   | <-- All
+|  54 |  36 |   6   |         |  112  |   6   |   6   |   6   |   6   |   6   |   6   |   6   |   6   | <-- All
+|  55 |  37 |   7   |         |  113  |   7   |   7   |   7   |   7   |   7   |   7   |   7   |   7   | <-- All
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+|  56 |  38 |   8   |         |  120  |   8   |   8   |   8   |   8   |   8   |   8   |   8   |   8   | <-- All
+|  57 |  39 |   9   |         |  121  |   9   |   9   |   9   |   9   |   9   |   9   |   9   |   9   | <-- All
+|  58 |  3A |   :   |         |  122  |   :   |   :   |   :   |   :   |   :   |   :   |   :   |   :   | <-- All
+|  59 |  3B |   ;   |         |  123  |   ;   |   ;   |   ;   |   ;   |   ;   |   ;   |   ;   |   ;   | <-- All
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+|  60 |  3C |   <   |         |  130  |   <   |   <   |   <   |   <   |   <   |   <   |   <   |   <   | <-- All
+|  61 |  3D |   =   |         |  131  |   =   |   =   |   =   |   =   |   =   |   =   |   =   |   =   | <-- All
+|  62 |  3E |   >   |         |  132  |   >   |   >   |   >   |   >   |   >   |   >   |   >   |   >   | <-- All
+|  63 |  3F |   ?   |         |  133  |   ?   |   ?   |   ?   |   ?   |   ?   |   ?   |   ?   |   ?   | <-- All
+|-----|-----|-------|         |-------|-------|-------|-------|-------|-------|-------+-------+-------+
+|  64 |  40 |   @   |         |       |   @   |   E'  |  SS   |   e'  |   a`  |   @   |   @   |   @   | <-- 5
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  65 |  41 |   A   |         |       |   A   |   A   |   A   |   A   |   A   |   A   |   A   |  ~~   | <-- !RUS
+|  66 |  42 |   B   |         |       |   B   |   B   |   B   |   B   |   B   |   B   |   B   |  ~~   | <-- !RUS
+|  67 |  43 |   C   |         |       |   C   |   C   |   C   |   C   |   C   |   C   |   C   |  ~~   | <-- !RUS
+|  68 |  44 |   D   |         |       |   D   |   D   |   D   |   D   |   D   |   D   |   D   |  ~~   | <-- !RUS
+|  69 |  45 |   E   |         |       |   E   |   E   |   E   |   E   |   E   |   E   |   E   |  ~~   | <-- !RUS
+|  70 |  46 |   F   |         |       |   F   |   F   |   F   |   F   |   F   |   F   |   F   |  ~~   | <-- !RUS
+|  71 |  47 |   G   |         |       |   G   |   G   |   G   |   G   |   G   |   G   |   G   |  ~~   | <-- !RUS
+|  72 |  48 |   H   |         |       |   H   |   H   |   H   |   H   |   H   |   H   |   H   |  ~~   | <-- !RUS
+|  73 |  49 |   I   |         |       |   I   |   I   |   I   |   I   |   I   |   I   |   I   |  ~~   | <-- !RUS
+|  74 |  4A |   J   |         |       |   J   |   J   |   J   |   J   |   J   |   J   |   J   |  ~~   | <-- !RUS
+|  75 |  4B |   K   |         |       |   K   |   K   |   K   |   K   |   K   |   K   |   K   |  ~~   | <-- !RUS
+|  76 |  4C |   L   |         |       |   L   |   L   |   L   |   L   |   L   |   L   |   L   |  ~~   | <-- !RUS
+|  77 |  4D |   M   |         |       |   M   |   M   |   M   |   M   |   M   |   M   |   M   |  ~~   | <-- !RUS
+|  78 |  4E |   N   |         |       |   N   |   N   |   N   |   N   |   N   |   N   |   N   |  ~~   | <-- !RUS
+|  79 |  4F |   O   |         |       |   O   |   O   |   O   |   O   |   O   |   O   |   O   |  ~~   | <-- !RUS
+|-----|-----|-------|         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  80 |  50 |   P   |         |       |   P   |   P   |   P   |   P   |   P   |   P   |   P   |  ~~   | <-- !RUS
+|  81 |  51 |   Q   |         |       |   Q   |   Q   |   Q   |   Q   |   Q   |   Q   |   Q   |  ~~   | <-- !RUS
+|  82 |  52 |   R   |         |       |   R   |   R   |   R   |   R   |   R   |   R   |   R   |  ~~   | <-- !RUS
+|  83 |  53 |   S   |         |       |   S   |   S   |   S   |   S   |   S   |   S   |   S   |  ~~   | <-- !RUS
+|  84 |  54 |   T   |         |       |   T   |   T   |   T   |   T   |   T   |   T   |   T   |  ~~   | <-- !RUS
+|  85 |  55 |   U   |         |       |   U   |   U   |   U   |   U   |   U   |   U   |   U   |  ~~   | <-- !RUS
+|  86 |  56 |   V   |         |       |   V   |   V   |   V   |   V   |   V   |   V   |   V   |  ~~   | <-- !RUS
+|  87 |  57 |   W   |         |       |   W   |   W   |   W   |   W   |   W   |   W   |   W   |  ~~   | <-- !RUS
+|  88 |  58 |   X   |         |       |   X   |   X   |   X   |   X   |   X   |   X   |   X   |  ~~   | <-- !RUS
+|  89 |  59 |   Y   |         |       |   Y   |   Y   |   Y   |   Y   |   Y   |   Y   |   Y   |  ~~   | <-- !RUS
+|  90 |  5A |   Z   |         |       |   Z   |   Z   |   Z   |   Z   |   Z   |   Z   |   Z   |  ~~   | <-- !RUS
+|     |     |       |         |       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  91 |  5B |   [   |         |       | LEFT  |   A"  |   A"  |DEGREE |   e"  |   [   | LEFT  |  ~~   | <-- 5
+|  92 |  5C |   \   |         |       | HALF  |   O"  |   O"  |c-ced-l| e-bol |   \   | HALF  |  ~~   | <-- 5
+|  93 |  5D |   ]   |         |       | RIGHT | A-dot |   U"  | RIGHT |   U`  |   ]   | RIGHT |  ~~   | <-- 5
+|  94 |  5E |   ^   |         |       |  UP   |   U"  |   ^   |  UP   |   i^  |   ^   |  UP   |  ~~   | <-- 4
+|     |     |       |---------|-------|       |       |       |       |       |       |       |       |
+|  95 |  5F |   _   |DASH|200 |   #   |   #   |   _   |   _   |   #   |   #   |   _   |   #   |  ~~   | <-- 2
+|-----|-----|-------|---------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+|  96 |  60 |   `   | GBP|003 |  200  | DASH  |   e'  |DEGREE |   U`  |   e`  |   `   |  ~~   |  ~~   | <-- 8
+|     |     |       |---------|       |-------|-------|-------|-------|-------|-------|-------|-------|
+|  97 |  61 |   a   |   a     |  201  |   a   |   a   |   a   |   a   |   a   |   a   |  ~~   |  ~~   | <-- !HEB, !RUS
+|  98 |  62 |   b   |   b     |  202  |   b   |   b   |   b   |   b   |   b   |   b   |  ~~   |  ~~   | <-- !HEB, !RUS
+|  99 |  63 |   c   |   c     |  203  |   c   |   c   |   c   |   c   |   c   |   c   |  ~~   |  ~~   | <-- !HEB, !RUS
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+| 100 |  64 |   d   |   d     |  210  |   d   |   d   |   d   |   d   |   d   |   d   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 101 |  65 |   e   |   e     |  211  |   e   |   e   |   e   |   e   |   e   |   e   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 102 |  66 |   f   |   f     |  212  |   f   |   f   |   f   |   f   |   f   |   f   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 103 |  67 |   g   |   g     |  213  |   g   |   g   |   g   |   g   |   g   |   g   |  ~~   |  ~~   | <-- !HEB, !RUS
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+| 104 |  68 |   h   |   h     |  220  |   h   |   h   |   h   |   h   |   h   |   h   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 105 |  69 |   i   |   i     |  221  |   i   |   i   |   i   |   i   |   i   |   i   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 106 |  6A |   j   |   j     |  222  |   j   |   j   |   j   |   j   |   j   |   j   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 107 |  6B |   k   |   k     |  223  |   k   |   k   |   k   |   k   |   k   |   k   |  ~~   |  ~~   | <-- !HEB, !RUS
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+| 108 |  6C |   l   |   l     |  230  |   l   |   l   |   l   |   l   |   l   |   l   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 109 |  6D |   m   |   m     |  231  |   m   |   m   |   m   |   m   |   m   |   m   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 110 |  6E |   n   |   n     |  232  |   n   |   n   |   n   |   n   |   n   |   n   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 111 |  6F |   o   |   o     |  233  |   o   |   o   |   o   |   o   |   o   |   o   |  ~~   |  ~~   | <-- !HEB, !RUS
+|-----|-----|-------|-- ------|-------|-- ----| ------| ------| ------| ------|-------|-------|-------|
+| 112 |  70 |   p   |   p     |  300  |   p   |   p   |   p   |   p   |   p   |   p   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 113 |  71 |   q   |   q     |  301  |   q   |   q   |   q   |   q   |   q   |   q   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 114 |  72 |   r   |   r     |  302  |   r   |   r   |   r   |   r   |   r   |   r   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 115 |  73 |   s   |   s     |  303  |   s   |   s   |   s   |   s   |   s   |   s   |  ~~   |  ~~   | <-- !HEB, !RUS
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+| 116 |  74 |   t   |   t     |  310  |   t   |   t   |   t   |   t   |   t   |   t   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 117 |  75 |   u   |   u     |  311  |   u   |   u   |   u   |   u   |   u   |   u   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 118 |  76 |   v   |   v     |  312  |   v   |   v   |   v   |   v   |   v   |   v   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 119 |  77 |   w   |   w     |  313  |   w   |   w   |   w   |   w   |   w   |   w   |  ~~   |  ~~   | <-- !HEB, !RUS
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+| 120 |  78 |   x   |   x     |  320  |   x   |   x   |   x   |   x   |   x   |   x   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 121 |  79 |   y   |   y     |  321  |   y   |   y   |   y   |   y   |   y   |   y   |  ~~   |  ~~   | <-- !HEB, !RUS
+| 122 |  7A |   z   |   z     |  322  |   z   |   z   |   z   |   z   |   z   |   z   |  ~~   |  ~~   | <-- !HEB, !RUS
+|     |     |       |---------|       |-------|-------|-------|-------|-------|-------|-------|-------|
+| 123 |  7B |   {   |  1/4    |  323  |  1/4  |   a"  |   a"  |   a`  | a-bol |   {   |  ~~   |  ~~   | <-- 7
+|     |     |       |         |-------|       |       |       |       |       |       |       |       |
+| 124 |  7C |   |   |BAR-BARRR|  330  |BAR-BAR|   o"  |   o"  |   o`  | o-bol |   |   |BAR-BAR|  ~~   | <-- 7
+| 125 |  7D |   }   |  3/4    |  331  |  3/4  | a-dot |   u"  |   e`  |  u^   |   }   |  3/4  |  ~~   | <-- 8
+| 126 |  7E |   ~   |  DIV    |  332  |  DIV  |   u"  |  BS   |   i`  |c-ced-h|   ~   |  DIV  |  ~~   | <-- 7
+|     |     |       |---------|       |-------|-------|-------|-------|-------|-------|-------|-------|
+| 127 |  7F |  DEL  | BLOCK   |  333  | BLOCK | BLOCK | BLOCK | BLOCK | BLOCK | BLOCK | BLOCK | BLOCK | <-- All
+`-------------------'-----------------'-------'-------'-------'-------'-------'-------'-------'-------'
+
+Diacritics
+	"   : umlaut
+	^   : circumflex
+	`   : grave accent
+    '   : acute accent
+	bol : bolle (small supercesant circle)
+	dot : Single umlaut!?
+	ced : cedilla {Light, Hard}
+
+Variants exist of:
+	Apostrophe  {Long, Short}
+	Full-stop   {Bold, Normal}
+	Comma       {Normal, Low}
+	c-cedilla   {Light, Hard}
+...Have I missed any?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ,--------------------------------------------------------.
 |  Decimal  |   Hex   | ASCII |    Alpha    |  Graphic   |
@@ -371,13 +1160,13 @@ else if (INRANGE(ch, 0x7F,0x9F))
 		case 136 :  return FN_ATTR_FLASH
 		case 137 :  return FN_ATTR_STEADY     // *Line Default
 
-		case 138 :  return   FN_NOTHING;
-		case 139 :  return   FN_NOTHING;
+		case 138 :  return   FN_NOTHING;      //+ end box
+		case 139 :  return   FN_NOTHING;      //+ start box
 		case 140 :  return FN_HEIGHT_NORMAL;  // *Line Default
 		case 141 :  return FN_HEIGHT_DOUBLE;
-		case 142 :  return   FN_NOTHING;
-		case 143 :  return   FN_NOTHING;
-		case 144 :  return   FN_NOTHING;
+		case 142 :  return   FN_NOTHING;      //+ S0 SO ??
+		case 143 :  return   FN_NOTHING;      //+ S1 SI ??
+		case 144 :  return   FN_NOTHING;      //+ DLE
 
 		case 145 :  return FN_INK_RED;
 		case 146 :  return FN_INK_GREEN;
@@ -391,7 +1180,7 @@ else if (INRANGE(ch, 0x7F,0x9F))
 
 		case 153 :  return FN_GRAPH_CONTIG;   // *Line Default
 		case 154 :  return FN_GRAPH_SPACED;
-		case 155 :  return   FN_NOTHING;
+		case 155 :  return   FN_NOTHING;      //+ ESC
 
 		case 156 :  return FN_PAPER_BLACK;    // *Line Default
 		case 157 :  return FN_PAPER_NEW;
@@ -476,6 +1265,16 @@ else if (mode == GRAPHICS)
 (  GLYPH MAP - ALPHANUMERIC  )
  `--------------------------'
 
+In my opinion, the Alphanumeric Mode makes most sense if the top bit [2^7 = 0x80] is CLEAR [0] ....Ie. {0x00..0x7F}
+	'#' is in the correct (ASCII) placement
+	'[' is replaced with LEFT arrow
+	']' is replaced with RIGHT arrow
+	'\' is replaced with HALF [1/2]
+	'^' is replaced with UP arrow
+	'_' is replaced with DASH (aka HYPHEN) [2 pixels shorter than a '-' MINUS]
+	'`' is replaced with GBP "pound" currency symbol
+NB. "DOWN arrow" does NOT exist in Mode-7
+
 0x    +0      +1      +2      +3      +4      +5      +6      +7      +8      +9      +A      +B      +C      +D      +E      +F    ||    Lo       High
                                                                                                                                     ||
     ......  ...#..  ..#.#.  +----+  ..###.  .##...  ..#...  ...#..  ....#.  ..#...  ...#..  ......  ......  ......  ......  ......  ||  ..#.#.    ...##.
@@ -548,6 +1347,9 @@ F0  .#...#  .#...#  ..#...  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  .#..
  ,----------------------.
 (  GLYPH MAP - GRAPHICS  )
  `----------------------'
+
+In my opinion, the Graphics Mode makes most sense if the top bit [2^7 = 0x80] is SET [1] ....Ie. {0x80..0xFF}
+	All
 
 0x    +0      +1      +2      +3      +4      +5      +6      +7      +8      +9      +A      +B      +C      +D      +E      +F    ||    Lo       High
                                                                                                                                     ||
@@ -627,7 +1429,7 @@ This script will convert the glyph diagrams in to usable C data.
 
 There are many maanny ways to optimise this output.
 
-------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- 
+------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 -------------
 #!/bin/bash
 
 ##================================================================================================================
@@ -860,7 +1662,7 @@ exit 0
 ......  ......  ...###
 ......  ......  ...###
 **-GRAPHIC
-------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- 
+------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 ------------- >-8 -------------
 
 
  ,-------------.
