@@ -9,7 +9,64 @@ ToDo
 
 	* BIBLIOGRPAHY
 
+	* BBC MODE-7
 
+	* MULLARD SAA-505x
+	* LANGUAGE SUPPORT
+	* HARDWARE RESET
+	* SCREEN LAYOUT
+		* TEXT RESOLUTION
+		* ** NOTE **
+		* SCREEN DATA SIZE
+		* PIXEL RESOLUTION
+		* RASTER RESOLUTION
+		* SCREEN RESOLUTION
+		* MODE-7 CURSOR POSITIONING
+
+	* COLOUR BUTTONS
+	* LINE OPERATION
+	* PIXEL RATIO
+	* FONT SMOOTHING
+
+	* BOXES
+	* FLASHING GLYPHS
+	* CONCEAL MODE
+	* DOUBLE HEIGHT
+	* GLYPH COLOUR SELECTION
+	* BACKGROUND COLOUR SELECTION
+
+	* GRAPHICS MODE
+	* GLYPH SCALING
+		* THREE-BY-THREE
+		* TWO-BY-TWO
+		* ALPHANUMERIC EXAMPLES
+		* GRAPHICAL EXAMPLES
+
+	* MY TOY
+
+	* CONTROL CODE TABLES
+	* GRAPHICAL GLYPH DESIGN
+	* GLYPH TABLE
+	* GLYPH MAP - GRAPHICS - 505x - Contiguous
+	* GLYPH MAP - GRAPHICS - 505x - Separated
+	* GLYPH MAP - ALPHA - 5050 - UK
+	* GLYPH MAP - ALPHA - 5051 - DE
+	* GLYPH MAP - ALPHA - 5052 - SW
+	* GLYPH MAP - ALPHA - 5053 - IT
+	* GLYPH MAP - ALPHA - 5054 - BE
+	* GLYPH MAP - ALPHA - 5055 - US
+	* GLYPH MAP - ALPHA - 5056 - HE
+	* GLYPH MAP - ALPHA - 5057 - RU
+	* GLYPH MAP - GRAPHICS - MODE-7 [UK]
+	* GLYPH MAP - ALPHA - MODE-7 [UK]
+
+	* FONT COMPRESSION
+		* WIDTH
+		* ALPHANUMERIC
+		* GRAPHICS
+
+	* GRAPHICS GLYPH CODE
+	* GENERATE C SOURCE CODE
 
  ,--------------.
 (  BIBLIOGRPAHY  )
@@ -66,11 +123,13 @@ Good people of the internet:
 When you find great web-pages, PLEASE submit them to archive.org
 ...it only takes 30 seconds to:
 	# Go to http://archive.org
-	# Paste the URL in to the WaybackMachine search box
+		# Paste the URL in to the WaybackMachine search box
+
 	# When it says "Wayback Machine has not archived that URL."
-	# Click [Save this URL in the Wayback Machine]
+		# Click [Save this URL in the Wayback Machine]
+
 	# It will ask:  [x] Save error pages (HTTP Status=4xx, 5xx) ...your choice
-	# Click [Save Page]
+		# Click [Save Page]
 ...and is a great way to help old information survive.
 
 
@@ -78,15 +137,18 @@ When you find great web-pages, PLEASE submit them to archive.org
 (  BBC MODE-7  )
  `------------'
 
-The Acorn BBC Micro "Mode-7" is actually a special use-case of
+The Acorn BBC Micro "Mode-7" is actually a special use-case of the
 	Mullard SAA-5050 Teletext Character Generator [505x - English (UK) Variant]
 
-The Acorn BBC Micro has some notable anomalies.
+You can start Mode-7 on a BBC Micro with:
+	VDU 23, 7
+
+Mode-7 has some notable anomalies:
 	# Character set is presented as two 256 character fonts
 	# A few strange character re-mappings
-	# Additional Control Codes
+	# Control Codes moved
 
-This document will document the 505x ICs, and comment on deviations in "Mode-7".
+This document will document the 505x ICs, and comment on Move-7 deviations.
 
 
  ,------------------.
@@ -99,17 +161,18 @@ have/had an "Alphanumeric Mode", and a "Graphics Mode".
 
 When used by television sets to present Teletext, the 505x is (normally) used
 natively, such that it presents a 7-bit {0x00..0x7F} character set.
-	96 Alphanumeric Glyphs - applicable to the language
-	64 Graphic Glyphs      - common to all chips
-	32 Control Characters  - common to all chips
+	96 Alphanumeric Glyphs - applicable to the language variant
+	64 Graphic Glyphs      - common to all variants
+	32 Control Characters  - common to all variants
 
-,----------+ +------------------------------------------------------------.
-|    Code: | | 0x00 .. 0x1F  | 0x20 .. 0x3F | 0x40 .. 0x5F | 0x60 .. 0x7F |
-|==========| |===============|==============|==============|==============|
-|   Alpha: | |               |  Low:Alpha   |              | High:Alpha   |
-|~~ Mode ~~+ + Control Codes +~~~~~~~~~~~~~~+~ Mid:Alpha  ~+~~~~~~~~~~~~~~|
-| Graphic: | |               |  Low:Graphic |              | High:Graphic |
-`----------+ +------------------------------------------------------------'
+32 of the Alphanumeric Glyphs are available in Graphics mode;
+	,----------+ +------------------------------------------------------------.
+	|    Code: | | 0x00 .. 0x1F  | 0x20 .. 0x3F | 0x40 .. 0x5F | 0x60 .. 0x7F |
+	|==========| |===============|==============|==============|==============|
+	|   Alpha: | |               |  Low:Alpha   |              | High:Alpha   |
+	|~~ Mode ~~+ + Control Codes +~~~~~~~~~~~~~~+~ Mid:Alpha  ~+~~~~~~~~~~~~~~|
+	| Graphic: | |               |  Low:Graphic |              | High:Graphic |
+	`----------+ +------------------------------------------------------------'
 
 Each Printable (Alphanumeric/Graphic) Glyph is formed on a 6x10 matrix
 	Alphanumeric Glyphs are formed on a 5x9 matrix
@@ -121,8 +184,12 @@ Each Printable (Alphanumeric/Graphic) Glyph is formed on a 6x10 matrix
 	Graphical Glyphs may be displayed in either
 		# Contiguous Mode
 		# Separated  Mode
-	[qv. GRAPHICAL GLYPH DESIGN]
+	[qv. GLYPH COLOUR SELECTION]
 
+Switching between Alphanumeric and Graphics mode is achieved by sending one of
+the 14 [FOURTEEN] colour control codes. [qv. CONTROL CODE TABLES]
+Seven each for Alphanumeric and Graphics modes: {R,G,B,W, C,M,Y}
+Some teletext chips also offer Black - but this is non-standard.
 
  ,------------------.
 (  LANGUAGE SUPPORT  )
@@ -161,8 +228,8 @@ Conceal is used to hide Glyphs
 ...Eg. The answers to quiz questions.
 
 Superimpose sets the background colour to Transparent.
-...This was used to allow the user to view the TV Image while reading
-Contrary to instinct, this is NOT used to display Subtitles
+...This was used to allow the user to view the TV Image while reading.
+Contrary to instinct, this is NOT used to display Subtitles,
 ...that is achieved by use of the "Box-Start/End" Control Codes.
 
 
@@ -178,7 +245,8 @@ TEXT RESOLUTION
 
 	"24+1" (rather than "25") is commonly used to describe a VDU text resolution
 	as the bottom row of a VDU was historically reserved-for, and referred-to
-	as the "Status Line".
+	as the "Status Line". And is/was GENERALLY unavailable without the use of
+	special Control Codes.
 
 	Broadcast Teletext pages:
 		GENERALLY only use 23 of the 25 available lines.
@@ -192,7 +260,7 @@ TEXT RESOLUTION
 		The Bottom-Right corner is {24,39}  ... Ie. {y, x}
 
 	To ensure the image did not bleed in to the Overscan area of a CRT,
-	a space/border equivalent to 6 [SIX] Glyphs was left at both the
+	a space/border equivalent to 6 [SIX] Glyphs wide was left at both the
 	start and end of each line.
 
 
@@ -222,7 +290,7 @@ TEXT RESOLUTION
 	Also, the 6 Left/Right spaces are outside user control.
 
 	Therefore, in this document, future references to the screen size will
-	assume TWENTY-FOUR lines {0..23}, each of FORTY cells {0..39}.
+	assume TWENTY-FOUR lines {0..23}, each of FORTY character cells {0..39}.
 
 SCREEN DATA SIZE
 ================
@@ -236,8 +304,8 @@ SCREEN DATA SIZE
 PIXEL RESOLUTION
 ================
 
-	Each Glyph is exactly {6x10} Pixels {WxH}
-	...This includes Alphanumeric Kerning and Leading.
+	Each Glyph occupies an area of exactly {6x10} Pixels {WxH}
+	...This INcludes Alphanumeric Kerning and Leading.
 
 	Therefore the Display has a PIXEL Resolution of:
 		{(40*6)            x (24*10)    }  ==  {240 x 240}
@@ -311,7 +379,7 @@ At the start of EVERY display line, the 505x State Machine is reset to:
 	Box       : Off         !on
 ...Notably, EVERY line starts in Alphanumeric Mode
 
-EVERY Code sent to the VDU occupies exactly ONE character cell.
+EVERY Control Code or Glyph sent to the VDU occupies exactly ONE character cell.
 ...This INcludes ALL Control Codes (mapped or otherwise).
 
 
@@ -319,8 +387,8 @@ EVERY Code sent to the VDU occupies exactly ONE character cell.
 (  PIXEL RATIO  )
  `-------------'
 
+To achieve a 4:3 IMAGE aspect ratio suitable for a 'standard' 4:3 CRT,
 Teletext COMMONLY renders Pixels with a Pixel Ratio of 1.33:1
-to achieve a 4:3 IMAGE aspect ratio suitable for a 'standard' 4:3 CRT.
 
 The 1.33:1 Pixel scaling is/was, in the analogue world, performed by clock skewing.
 
@@ -332,7 +400,7 @@ More information can be found in the 5050/505x datasheet(s).
 (  FONT SMOOTHING  )
  `----------------'
 
-...I've yet to properly understand this
+...I've yet to find an comprehensible explanation of this
 ...it's in the datasheet ...but it's poorly described :/
 
 Essentially "Half Pixels" are added to the empty Pixel space on Glyph diagonals
@@ -362,11 +430,11 @@ Rendering may be stopped with TWO Box-End Controls (again, no idea why 'two')
 	The first  will render (as a space, by default).
 	The second will be invisible,
 
-If no Box-End is found on the line,
-...Box Mode will be disabled automatically at the end of the line
+Box Mode is disabled at the start of every line, therefore you MAY omit
+the Box-End Control Codes and have Boxed Glyphs up to and including column 39.
 
 You MAY set the Background colour BEFORE the first Box-Start
-...So you CAN control the COLOUR of the first charcater
+...So you CAN control the COLOUR of the first character.
 
 You MAY "Hold" a Graphic Glyph for use as the first character.
 
@@ -375,17 +443,17 @@ You MAY "Hold" a Graphic Glyph for use as the first character.
 (  FLASHING GLYPHS  )
  `-----------------'
 
-Both Alphanumeric and Graphic Glyphs may be set to Flash
+Both Alphanumeric and Graphic Glyphs may be set to Flash.
 
-The flash ratio is 3:1 (ON:OFF)
+The flash ratio (on the 505x chips) is 3:1 (ON:OFF)
 
 The 505x datasheet suggests that should be driven by a 0.75Hz clock
 ...which would give: 3.99:1.33 seconds
-...I don't remember it being this slow :/
+...I don't remember Teletext being this slow :/
 
 Flashing does NOT swap the Background and Foreground colours.
-The Background will remain constant,
-  and the Glyph will only be rendered during the ON phase.
+The Background will remain constant, and
+the Glyph will only be rendered during the ON phase.
 
 Any number of Flash-On and Flash-Off Control Codes may appear on any line.
 	Flash On           :          FUTURE Glyphs   WILL   Flash
@@ -424,12 +492,12 @@ it simply fails to render the Glyph.
 
 Double height text is exactly that, a Y scaling of 2
 
-Every Glyph Pixel is rendered double-height
+Every Glyph Pixel is rendered double-height.
 
-Double Height Glyphs take up exactly TWO lines of the screen
+Double Height Glyphs take up exactly TWO lines of the screen.
 
-The FIRST  line  {n}  MAY contain BOTH Single and Double Height Glyphs.
-The SECOND line {n+1} MAY contain ONLY            Double Height Glyphs.
+The FIRST  line  {n}  MAY hold BOTH Single and (the  TOP   half of) Double Height Glyphs.
+The SECOND line {n+1} MAY hold ONLY            (the BOTTOM half of) Double Height Glyphs.
 
 Mode-7 DOES/MAY allow Single Height Glyphs on the SECOND {n+1} line.
 	[depending on what documentation you read]
@@ -487,7 +555,7 @@ ANY Graphic-Colour Control Code sets the:
 (  BACKGROUND COLOUR SELECTION  )
  `-----------------------------'
 
-The Background Colour is, by reset to Black at the Start of each line.
+The Background Colour is reset to Black at the Start of each line.
 
 Changing the background colour requires TWO (or, arguably THREE) Control Codes:
 Each of these codes DOES occupy a Character Cell on the VDU.
@@ -706,51 +774,61 @@ They are COMMONLY referred to as if bit-7 (2^7) were Set, ie. (0x80..0x9F}
 
 The BBC did not handle Hex nicely, so BBC codes are also given in Decimal
 
-,-----------------------------------------------------------------------------.
-|___Control_Code___|               |       |                                  |
-| 505x  |    BBC   | Function      | Notes | Reference                        |
-|       | Hex/ Dec |               |       |                                  |
-|=======|==========|===============|=======|==================================|
-|  00   | 80 / 128 | NUL           |     X | Some chips map this to ALPHA_BLK |
-|  01   | 81 / 129 | ALPHA_RED     |       | [GLYPH COLOUR SELECTION]         |
-|  02   | 82 / 130 | ALPHA_GRN     |       | [GLYPH COLOUR SELECTION]         |
-|  03   | 83 / 131 | ALPHA_YEL     |       | [GLYPH COLOUR SELECTION]         |
-|  04   | 84 / 132 | ALPHA_BLU     |       | [GLYPH COLOUR SELECTION]         |
-|  05   | 85 / 133 | ALPHA_MAG     |       | [GLYPH COLOUR SELECTION]         |
-|  06   | 86 / 134 | ALPHA_CYN     |       | [GLYPH COLOUR SELECTION]         |
-|  07   | 87 / 135 | ALPHA_WHT     | *     | [GLYPH COLOUR SELECTION]         |
-|-------|----------|---------------|-------|----------------------------------|
-|  08   | 88 / 136 | ATTR_FLASH    |       | [FLASHING GLYPHS]                |
-|  09   | 89 / 137 | ATTR_STEADY   | *     | [FLASHING GLYPHS]                |
-|  0A   | 8A / 138 | BOX_END       | #   X | [BOXES]                          |
-|  0B   | 8B / 139 | BOX_START     |     X | [BOXES]                          |
-|  0C   | 8C / 140 | HEIGHT_NORMAL | *     | [DOUBLE HEIGHT]                  |
-|  0D   | 8D / 141 | HEIGHT_DOUBLE |       | [DOUBLE HEIGHT]                  |
-|  0E   | 8E / 142 | S0            |   % X | -                                |
-|  0F   | 8F / 143 | S1            |   % X | -                                |
-|-------|----------|---------------|-------|----------------------------------|
-|  10   | 90 / 144 | DLE           |   % X | Some chips map this to GRAPH_BLK |
-|  11   | 91 / 145 | GRAPH_RED     |       | [GLYPH COLOUR SELECTION]         |
-|  12   | 92 / 146 | GRAPH_GRN     |       | [GLYPH COLOUR SELECTION]         |
-|  13   | 93 / 147 | GRAPH_YEL     |       | [GLYPH COLOUR SELECTION]         |
-|  14   | 94 / 148 | GRAPH_BLU     |       | [GLYPH COLOUR SELECTION]         |
-|  15   | 95 / 149 | GRAPH_MAG     |       | [GLYPH COLOUR SELECTION]         |
-|  16   | 96 / 150 | GRAPH_CYN     |       | [GLYPH COLOUR SELECTION]         |
-|  17   | 97 / 151 | GRAPH_WHT     |       | [GLYPH COLOUR SELECTION]         |
-|-------|----------|---------------|-------|----------------------------------|
-|  18   | 98 / 152 | DISP_CONCEAL  |       | [CONCEAL MODE]                   |
-|  19   | 99 / 153 | GRAPH_CONTIG  | *     | [GRAPHICS MODE]                  |
-|  1A   | 9A / 154 | GRAPH_SPACED  |       | [GRAPHICS MODE]                  |
-|  1B   | 9B / 155 | ESC           |   % X | -                                |
-|  1C   | 9C / 156 | PAPER_BLACK   | *     | [BACKGROUND COLOUR SELECTION]    |
-|  1D   | 9D / 157 | PAPER_NEW     |       | [BACKGROUND COLOUR SELECTION]    |
-|  1E   | 9E / 158 | GRAPH_HOLD    |       | [GRAPHICS MODE]                  |
-|  1F   | 9F / 159 | GRAPH_RELEASE | *     | [GRAPHICS MODE]                  |
-`-----------------------------------------------------------------------------'
+,----------------------------------------------------------------------------------------.
+|___Control_Code___|               |       |                                  |          |
+| 505x  |    BBC   | Function      | Notes | Reference                        | Sequence |
+|       | Hex/ Dec |               |       |                                  |          |
+|=======|==========|===============|=======|==================================|==========|
+|  00   | 80 / 128 | NUL           |     X | Some chips map this to ALPHA_BLK | hg,CC,H- |
+|  01   | 81 / 129 | ALPHA_RED     |       | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+|  02   | 82 / 130 | ALPHA_GRN     |       | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+|  03   | 83 / 131 | ALPHA_YEL     |       | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+|  04   | 84 / 132 | ALPHA_BLU     |       | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+|  05   | 85 / 133 | ALPHA_MAG     |       | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+|  06   | 86 / 134 | ALPHA_CYN     |       | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+|  07   | 87 / 135 | ALPHA_WHT     | *     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+|-------|----------|---------------|-------|----------------------------------|----------|
+|  08   | 88 / 136 | ATTR_FLASH    |       | [FLASHING GLYPHS]                | hg,CC *1 |
+|  09   | 89 / 137 | ATTR_STEADY   | *     | [FLASHING GLYPHS]                | CC,hg *1 |
+|  0A   | 8A / 138 | BOX_END       | #   X | [BOXES]                          | hg,CC    |
+|  0B   | 8B / 139 | BOX_START     |     X | [BOXES]                          | hg,CC    |
+|  0C   | 8C / 140 | HEIGHT_NORMAL | *     | [DOUBLE HEIGHT]                  | hg,CC *2 |
+|  0D   | 8D / 141 | HEIGHT_DOUBLE |       | [DOUBLE HEIGHT]                  | hg,CC *2 |
+|  0E   | 8E / 142 | S0            |   % X | -                                | -        |
+|  0F   | 8F / 143 | S1            |   % X | -                                | -        |
+|-------|----------|---------------|-------|----------------------------------|----------|
+|  10   | 90 / 144 | DLE           |   % X | Some chips map this to GRAPH_BLK | hg,CC    |
+|  11   | 91 / 145 | GRAPH_RED     |       | [GLYPH COLOUR SELECTION]         | hg,CC    |
+|  12   | 92 / 146 | GRAPH_GRN     |       | [GLYPH COLOUR SELECTION]         | hg,CC    |
+|  13   | 93 / 147 | GRAPH_YEL     |       | [GLYPH COLOUR SELECTION]         | hg,CC    |
+|  14   | 94 / 148 | GRAPH_BLU     |       | [GLYPH COLOUR SELECTION]         | hg,CC    |
+|  15   | 95 / 149 | GRAPH_MAG     |       | [GLYPH COLOUR SELECTION]         | hg,CC    |
+|  16   | 96 / 150 | GRAPH_CYN     |       | [GLYPH COLOUR SELECTION]         | hg,CC    |
+|  17   | 97 / 151 | GRAPH_WHT     |       | [GLYPH COLOUR SELECTION]         | hg,CC    |
+|-------|----------|---------------|-------|----------------------------------|----------|
+|  18   | 98 / 152 | DISP_CONCEAL  |       | [CONCEAL MODE]                   | hg,CC    |
+|  19   | 99 / 153 | GRAPH_CONTIG  | *     | [GRAPHICS MODE]                  | CC,hg *3 |
+|  1A   | 9A / 154 | GRAPH_SPACED  |       | [GRAPHICS MODE]                  | CC,hg *3 |
+|  1B   | 9B / 155 | ESC           |   % X | -                                | -        |
+|  1C   | 9C / 156 | PAPER_BLACK   | *     | [BACKGROUND COLOUR SELECTION]    | CC,hg    |
+|  1D   | 9D / 157 | PAPER_NEW     |       | [BACKGROUND COLOUR SELECTION]    | CC,hg    |
+|  1E   | 9E / 158 | GRAPH_HOLD    |       | [GRAPHICS MODE]                  | CC,hg    |
+|  1F   | 9F / 159 | GRAPH_RELEASE | *     | [GRAPHICS MODE]                  | hg,CC    |
+`----------------------------------------------------------------------------------------'
 	*  Every character line on the VDU starts with these attributes.
 	#  BOX_END is NOT listed as a reset code, but tests suggest it is
 	%  "Reserved for compatibility"
 	X  Unmapped in BBC Mode-7
+
+The Display Sequence is specified as:
+	hg : Display Held Glyph
+	CC : Affect Control Code
+	H- : Hold Release *2
+	*1 : FLASH effects the NEXT Glyph; STEADY affects THIS Glyph
+	*2 : If the Height Mode changes, the Held Glyph is cleared
+	*3 : Do NOT update the current Held Glyph
+^This has all been inferred by playing with online editors
+...which do NOT always agree with each other! :-/
 
 ^This^ dual-numbering seems irrational, until you appreciate that on the
 BBC Micro (which brought the 5050 chip to the home user), "Mode-7" REQUIRES that
@@ -1848,6 +1926,442 @@ Variants exist of:
 </glyphMap>
 
 
+ ,-------------------------------.
+(  GLYPH MAP - GRAPHICS - MODE-7  )
+ `-------------------------------'
+
+In my opinion, the Graphics Mode makes most sense if the top bit [2^7 = 0x80] is SET [1] ....Ie. {0x80..0xFF}
+
+Note that 0x7F is the Control Code for DEL. Therfore there are only 95 [NINETY FIVE] Glyphs in the Low map
+_______________________________________________________________________________________________________________________________________
+      +0      +1      +2      +3      +4      +5      +6      +7      +8      +9      +A      +B      +C      +D      +E      +F     0x|    Lo       High
+------------------------------------------------------------------------------------------------------------------------------------+  |
+																																	|  |
+	......  ###...  ...###  +----+  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ..#.#.    ######
+	......  ###...  ...###  |    |  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ..#.#.    ######
+	......  ###...  ...###  |    |  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  .#####    ######
+	......  ......  ......  |    |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ..#.#.    ......
+	......  ......  ......  | 23 |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |20|  .#####    ......
+	......  ......  ......  | A3 |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |A0|  ..#.#.    ......
+	......  ......  ......  |    |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ..#.#.    ......
+	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
+	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
+	......  ......  ......  +----+  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
+																																	|  |   0x23      0xA3
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |30|
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |B0|
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  |  |
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  |  |
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  |  |
+																																	|  |
+	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.  |  |
+	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#  |  |
+	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#  |  |
+	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#  |  |
+	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#  |40|
+	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#  |C0|
+	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+																																	|  |
+	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  +----+  |  |  ......    ..#.#.
+	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  |    |  |  |  ......    ..#.#.
+	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  |    |  |  |  ......    .#####
+	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  |    |  |  |  ......    ..#.#.
+	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  | 5F |  |50|  ......    .#####
+	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  | DF |  |D0|  ......    ..#.#.
+	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  |    |  |  |  ......    ..#.#.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  |    |  |  |  ...###    ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  |    |  |  |  ...###    ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  +----+  |  |  ...###    ......
+																																	|  |   0x5F      0xDF
+	+----+  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ######    ......
+	|    |  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ######    ......
+	|    |  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ######    ......
+	|    |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ......    ......
+	| 60 |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |60|  ......    ......
+	| E0 |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |E0|  ......    ......
+	|    |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ......    ......
+	|    |  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  |  |  ......    ...###
+	|    |  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  |  |  ......    ...###
+	+----+  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  |  |  ......    ...###
+																																	|  |   0x60      0xE0
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  +----+  |  |            ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  |    |  |  |            ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  |    |  |  |            ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  |    |  |  |            ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  |    |  |70|            ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  | FF |  |F0|   [DEL]    ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  |    |  |  |            ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  |    |  |  |            ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  |    |  |  |            ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  +----+  |  |            ######
+	                                                                                                                                       0x7F      0xFF
+<glyphMap id=5050_Mode7_Gfx_Low mode=gfx cnt=95 chr0=32>
+
+	......  ###...  ...###  ..#.#.  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ..#.#.  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  .#####  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ......  ......  ..#.#.  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  .#####  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  20
+	......  ......  ......  ..#.#.  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ..#.#.  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  30
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...
+
+	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.
+	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#
+	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#
+	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#
+	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#  40
+	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#
+	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  ......
+	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  ......
+	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  ......
+	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  ......
+	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  ......  50
+	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  ......
+	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  ...###
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  ...###
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###
+
+	######  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	######  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	######  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  60
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###
+	......  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###
+	......  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###
+
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######          70
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######
+
+</glyphMap>
+
+<glyphMap id=5050_Mode7_Gfx_High mode=gfx cnt=96 chr0=160>
+
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  A0
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  B0
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...
+	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...
+
+	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.
+	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#
+	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#
+	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#
+	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#  C0
+	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#
+	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  ..#.#.
+	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  ..#.#.
+	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  .#####
+	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  ..#.#.
+	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  .#####  D0
+	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  ..#.#.
+	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  ..#.#.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  E0
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###
+	...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###
+	...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###
+
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  F0
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######
+	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######
+
+</glyphMap>
+
+
+ ,----------------------------.
+(  GLYPH MAP - ALPHA - MODE-7  )
+ `----------------------------'
+
+In my opinion, the Alphanumeric Mode makes most sense if the top bit [2^7 = 0x80] is CLEAR [0] ....Ie. {0x00..0x7E}
+
+Note that 0x7F is the Control Code for DEL. Therfore there are only 95 [NINETY FIVE] Glyphs in the Low map
+
+_______________________________________________________________________________________________________________________________________
+      +0      +1      +2      +3      +4      +5      +6      +7      +8      +9      +A      +B      +C      +D      +E      +F     0x|    Lo       High
+------------------------------------------------------------------------------------------------------------------------------------+  |
+																																	|  |
+	......  ...#..  ..#.#.  +----+  ..###.  .##...  ..#...  ...#..  ....#.  ..#...  ...#..  ......  ......  ......  ......  ......  |  |  ..#.#.    ...##.
+	......  ...#..  ..#.#.  |    |  .#.#.#  .##..#  .#.#..  ...#..  ...#..  ...#..  .#.#.#  ...#..  ......  ......  ......  ......  |  |  ..#.#.    ..#..#
+	......  ...#..  ..#.#.  |    |  .#.#..  ....#.  .#.#..  ...#..  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  .....#  |  |  .#####    ..#...
+	......  ...#..  ......  |    |  ..###.  ...#..  ..#...  ......  ..#...  ....#.  ...#..  .#####  ......  ..###.  ......  ....#.  |  |  ..#.#.    .###..
+	......  ...#..  ......  | 23 |  ...#.#  ..#...  .#.#.#  ......  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  ...#..  |20|  .#####    ..#...
+	......  ... ..  ......  | A3 |  .#.#.#  .#..##  .#..#.  ......  ...#..  ...#..  .#.#.#  ...#..  ...#..  ......  ......  ..#...  |A0|  ..#.#.    ..#...
+	......  ...#..  ......  |    |  ..###.  ....##  ..##.#  ......  ....#.  ..#...  ...#..  ......  ...#..  ......  ...#..  .#....  |  |  ..#.#.    .#####
+	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......  |  |  ......    ......
+	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
+	......  ......  ......  +----+  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
+																																	|  |
+	...#..  ...#..  ..###.  .#####  ....#.  .#####  ...##.  .#####  ..###.  ..###.  ......  ......  ....#.  ......  .#....  ..###.  |  |
+	..#.#.  ..##..  .#...#  .....#  ...##.  .#....  ..#...  .....#  .#...#  .#...#  ......  ......  ...#..  ......  ..#...  .#...#  |  |
+	.#...#  ...#..  .....#  ....#.  ..#.#.  .####.  .#....  ....#.  .#...#  .#...#  ...#..  ...#..  ..#...  .#####  ...#..  ....#.  |  |
+	.#...#  ...#..  ...##.  ...##.  .#..#.  .....#  .####.  ...#..  ..###.  ..####  ......  ......  .#....  ......  ....#.  ...#..  |  |
+	.#...#  ...#..  ..#...  .....#  .#####  .....#  .#...#  ..#...  .#...#  .....#  ......  ......  ..#...  .#####  ...#..  ...#..  |30|
+	..#.#.  ...#..  .#....  .#...#  ....#.  .#...#  .#...#  ..#...  .#...#  ....#.  ......  ...#..  ...#..  ......  ..#...  ......  |B0|
+	...#..  ..###.  .#####  ..###.  ....#.  ..###.  ..###.  ..#...  ..###.  ..##..  ...#..  ...#..  ....#.  ......  .#....  ...#..  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......  ......  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+																																	|  |
+	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.  |  |
+	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#  |  |
+	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#  |  |
+	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#  |  |
+	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#  |40|
+	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#  |C0|
+	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
+																																	|  |
+	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  +----+  |  |  ......    ..#.#.
+	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  |    |  |  |  ......    ..#.#.
+	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  |    |  |  |  ......    .#####
+	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  |    |  |  |  .#####    ..#.#.
+	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  | 5F |  |50|  ......    .#####
+	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  | DF |  |D0|  ......    ..#.#.
+	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  |    |  |  |  ......    ..#.#.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  |    |  |  |  ......    ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  |    |  |  |  ......    ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  +----+  |  |  ......    ......
+																																	|  |
+	+----+  ......  .#....  ......  .....#  ......  ....#.  ......  .#....  ...#..  ...#..  ..#...  ..##..  ......  ......  ......  |  |  ...##.    ......
+	|    |  ......  .#....  ......  .....#  ......  ...#..  ......  .#....  ......  ......  ..#...  ...#..  ......  ......  ......  |  |  ..#..#    ......
+	|    |  ..###.  .####.  ..####  ..####  ..###.  ...#..  ..####  .####.  ..##..  ...#..  ..#..#  ...#..  .##.#.  .####.  ..###.  |  |  ..#...    ......
+	|    |  .....#  .#...#  .#....  .#...#  .#...#  ..###.  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#  |  |  .###..    .#####
+	| 60 |  ..####  .#...#  .#....  .#...#  .#####  ...#..  .#...#  .#...#  ...#..  ...#..  ..##..  ...#..  .#.#.#  .#...#  .#...#  |60|  ..#...    ......
+	| E0 |  .#...#  .#...#  .#....  .#...#  .#....  ...#..  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#  |E0|  ..#...    ......
+	|    |  ..####  .####.  ..####  ..####  ..###.  ...#..  ..####  .#...#  ..###.  ...#..  ..#..#  ..###.  .#.#.#  .#...#  ..###.  |  |  .#####    ......
+	|    |  ......  ......  ......  ......  ......  ......  .....#  ......  ......  ...#..  ......  ......  ......  ......  ......  |  |  ......    ......
+	|    |  ......  ......  ......  ......  ......  ......  ..###.  ......  ......  ..#...  ......  ......  ......  ......  ......  |  |  ......    ......
+	+----+  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
+																																	|  |
+	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  .##...  ......  +----+  |  |            .#####
+	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  ...#..  ...#..  |    |  |  |            .#####
+	.####.  ..####  ..#.##  ..####  ..###.  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  .#....  ..#.#.  .##...  ......  |    |  |  |            .#####
+	.#...#  .#...#  ..##..  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  .#...#  ....#.  .#....  ..#.#.  ...#..  .#####  |    |  |  |            .#####
+	.#...#  .#...#  ..#...  ..###.  ...#..  .#...#  ..#.#.  .#.#.#  ...#..  .#...#  ...#..  .#...#  ..#.#.  .##..#  ......  |    |  |70|   [DEL]    .#####
+	.#...#  .#...#  ..#...  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  .#...#  ..#...  ....##  ..#.#.  ....##  ...#..  | FF |  |F0|            .#####
+	.####.  ..####  ..#...  .####.  ....#.  ..####  ...#..  ..#.#.  .#...#  ..####  .#####  ...#.#  ..#.#.  ...#.#  ......  |    |  |  |            .#####
+	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  .....#  ......  ...###  ......  ...###  ......  |    |  |  |            ......
+	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  ..###.  ......  .....#  ......  .....#  ......  |    |  |  |            ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  +----+  |  |            ......
+
+<glyphMap id=5050_Mode7_Alpha_Low mode=alpha cnt=95 chr0=32>
+
+	......  ...#..  ..#.#.  ..#.#.  ..###.  .##...  ..#...  ...#..  ....#.  ..#...  ...#..  ......  ......  ......  ......  ......
+	......  ...#..  ..#.#.  ..#.#.  .#.#.#  .##..#  .#.#..  ...#..  ...#..  ...#..  .#.#.#  ...#..  ......  ......  ......  ......
+	......  ...#..  ..#.#.  .#####  .#.#..  ....#.  .#.#..  ...#..  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  .....#
+	......  ...#..  ......  ..#.#.  ..###.  ...#..  ..#...  ......  ..#...  ....#.  ...#..  .#####  ......  ..###.  ......  ....#.
+	......  ...#..  ......  .#####  ...#.#  ..#...  .#.#.#  ......  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  ...#..   20
+	......  ... ..  ......  ..#.#.  .#.#.#  .#..##  .#..#.  ......  ...#..  ...#..  .#.#.#  ...#..  ...#..  ......  ......  ..#...
+	......  ...#..  ......  ..#.#.  ..###.  ....##  ..##.#  ......  ....#.  ..#...  ...#..  ......  ...#..  ......  ...#..  .#....
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	...#..  ...#..  ..###.  .#####  ....#.  .#####  ...##.  .#####  ..###.  ..###.  ......  ......  ....#.  ......  .#....  ..###.
+	..#.#.  ..##..  .#...#  .....#  ...##.  .#....  ..#...  .....#  .#...#  .#...#  ......  ......  ...#..  ......  ..#...  .#...#
+	.#...#  ...#..  .....#  ....#.  ..#.#.  .####.  .#....  ....#.  .#...#  .#...#  ...#..  ...#..  ..#...  .#####  ...#..  ....#.
+	.#...#  ...#..  ...##.  ...##.  .#..#.  .....#  .####.  ...#..  ..###.  ..####  ......  ......  .#....  ......  ....#.  ...#..
+	.#...#  ...#..  ..#...  .....#  .#####  .....#  .#...#  ..#...  .#...#  .....#  ......  ......  ..#...  .#####  ...#..  ...#..   30
+	..#.#.  ...#..  .#....  .#...#  ....#.  .#...#  .#...#  ..#...  .#...#  ....#.  ......  ...#..  ...#..  ......  ..#...  ......
+	...#..  ..###.  .#####  ..###.  ....#.  ..###.  ..###.  ..#...  ..###.  ..##..  ...#..  ...#..  ....#.  ......  .#....  ...#..
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.
+	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#
+	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#
+	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#
+	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#   40
+	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#
+	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  ......
+	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  ......
+	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  ......
+	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  .#####
+	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  ......   50
+	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  ......
+	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	...##.  ......  .#....  ......  .....#  ......  ....#.  ......  .#....  ...#..  ...#..  ..#...  ..##..  ......  ......  ......
+	..#..#  ......  .#....  ......  .....#  ......  ...#..  ......  .#....  ......  ......  ..#...  ...#..  ......  ......  ......
+	..#...  ..###.  .####.  ..####  ..####  ..###.  ...#..  ..####  .####.  ..##..  ...#..  ..#..#  ...#..  .##.#.  .####.  ..###.
+	.###..  .....#  .#...#  .#....  .#...#  .#...#  ..###.  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#
+	..#...  ..####  .#...#  .#....  .#...#  .#####  ...#..  .#...#  .#...#  ...#..  ...#..  ..##..  ...#..  .#.#.#  .#...#  .#...#   60
+	..#...  .#...#  .#...#  .#....  .#...#  .#....  ...#..  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#
+	.#####  ..####  .####.  ..####  ..####  ..###.  ...#..  ..####  .#...#  ..###.  ...#..  ..#..#  ..###.  .#.#.#  .#...#  ..###.
+	......  ......  ......  ......  ......  ......  ......  .....#  ......  ......  ...#..  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ..###.  ......  ......  ..#...  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  .##...  ......
+	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  ...#..  ...#..
+	.####.  ..####  ..#.##  ..####  ..###.  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  .#....  ..#.#.  .##...  ......
+	.#...#  .#...#  ..##..  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  .#...#  ....#.  .#....  ..#.#.  ...#..  .#####
+	.#...#  .#...#  ..#...  ..###.  ...#..  .#...#  ..#.#.  .#.#.#  ...#..  .#...#  ...#..  .#...#  ..#.#.  .##..#  ......           70
+	.#...#  .#...#  ..#...  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  .#...#  ..#...  ....##  ..#.#.  ....##  ...#..
+	.####.  ..####  ..#...  .####.  ....#.  ..####  ...#..  ..#.#.  .#...#  ..####  .#####  ...#.#  ..#.#.  ...#.#  ......
+	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  .....#  ......  ...###  ......  ...###  ......
+	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  ..###.  ......  .....#  ......  .....#  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+</glyphMap>
+
+<glyphMap id=5050_Mode7_Alpha_High mode=alpha cnt=96 chr0=160>
+
+	......  ...#..  ..#.#.  ...##.  ..###.  .##...  ..#...  ...#..  ....#.  ..#...  ...#..  ......  ......  ......  ......  ......
+	......  ...#..  ..#.#.  ..#..#  .#.#.#  .##..#  .#.#..  ...#..  ...#..  ...#..  .#.#.#  ...#..  ......  ......  ......  ......
+	......  ...#..  ..#.#.  ..#...  .#.#..  ....#.  .#.#..  ...#..  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  .....#
+	......  ...#..  ......  .###..  ..###.  ...#..  ..#...  ......  ..#...  ....#.  ...#..  .#####  ......  ..###.  ......  ....#.
+	......  ...#..  ......  ..#...  ...#.#  ..#...  .#.#.#  ......  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  ...#..   A0
+	......  ... ..  ......  ..#...  .#.#.#  .#..##  .#..#.  ......  ...#..  ...#..  .#.#.#  ...#..  ...#..  ......  ......  ..#...
+	......  ...#..  ......  .#####  ..###.  ....##  ..##.#  ......  ....#.  ..#...  ...#..  ......  ...#..  ......  ...#..  .#....
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	...#..  ...#..  ..###.  .#####  ....#.  .#####  ...##.  .#####  ..###.  ..###.  ......  ......  ....#.  ......  .#....  ..###.
+	..#.#.  ..##..  .#...#  .....#  ...##.  .#....  ..#...  .....#  .#...#  .#...#  ......  ......  ...#..  ......  ..#...  .#...#
+	.#...#  ...#..  .....#  ....#.  ..#.#.  .####.  .#....  ....#.  .#...#  .#...#  ...#..  ...#..  ..#...  .#####  ...#..  ....#.
+	.#...#  ...#..  ...##.  ...##.  .#..#.  .....#  .####.  ...#..  ..###.  ..####  ......  ......  .#....  ......  ....#.  ...#..
+	.#...#  ...#..  ..#...  .....#  .#####  .....#  .#...#  ..#...  .#...#  .....#  ......  ......  ..#...  .#####  ...#..  ...#..   B0
+	..#.#.  ...#..  .#....  .#...#  ....#.  .#...#  .#...#  ..#...  .#...#  ....#.  ......  ...#..  ...#..  ......  ..#...  ......
+	...#..  ..###.  .#####  ..###.  ....#.  ..###.  ..###.  ..#...  ..###.  ..##..  ...#..  ...#..  ....#.  ......  .#....  ...#..
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.
+	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#
+	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#
+	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#
+	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#   C0
+	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#
+	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  ..#.#.
+	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  ..#.#.
+	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  .#####
+	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  ..#.#.
+	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  .#####   D0
+	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  ..#.#.
+	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  ..#.#.
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	......  ......  .#....  ......  .....#  ......  ....#.  ......  .#....  ...#..  ...#..  ..#...  ..##..  ......  ......  ......
+	......  ......  .#....  ......  .....#  ......  ...#..  ......  .#....  ......  ......  ..#...  ...#..  ......  ......  ......
+	......  ..###.  .####.  ..####  ..####  ..###.  ...#..  ..####  .####.  ..##..  ...#..  ..#..#  ...#..  .##.#.  .####.  ..###.
+	.#####  .....#  .#...#  .#....  .#...#  .#...#  ..###.  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#
+	......  ..####  .#...#  .#....  .#...#  .#####  ...#..  .#...#  .#...#  ...#..  ...#..  ..##..  ...#..  .#.#.#  .#...#  .#...#   E0
+	......  .#...#  .#...#  .#....  .#...#  .#....  ...#..  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#
+	......  ..####  .####.  ..####  ..####  ..###.  ...#..  ..####  .#...#  ..###.  ...#..  ..#..#  ..###.  .#.#.#  .#...#  ..###.
+	......  ......  ......  ......  ......  ......  ......  .....#  ......  ......  ...#..  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ..###.  ......  ......  ..#...  ......  ......  ......  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  .##...  ......  .#####
+	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  ...#..  ...#..  .#####
+	.####.  ..####  ..#.##  ..####  ..###.  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  .#....  ..#.#.  .##...  ......  .#####
+	.#...#  .#...#  ..##..  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  .#...#  ....#.  .#....  ..#.#.  ...#..  .#####  .#####
+	.#...#  .#...#  ..#...  ..###.  ...#..  .#...#  ..#.#.  .#.#.#  ...#..  .#...#  ...#..  .#...#  ..#.#.  .##..#  ......  .#####   F0
+	.#...#  .#...#  ..#...  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  .#...#  ..#...  ....##  ..#.#.  ....##  ...#..  .#####
+	.####.  ..####  ..#...  .####.  ....#.  ..####  ...#..  ..#.#.  .#...#  ..####  .#####  ...#.#  ..#.#.  ...#.#  ......  .#####
+	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  .....#  ......  ...###  ......  ...###  ......  ......
+	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  ..###.  ......  .....#  ......  .....#  ......  ......
+	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......
+
+</glyphMap>
+
  ,------------------.
 (  FONT COMPRESSION  )
  `------------------'
@@ -2190,10 +2704,12 @@ exit 0
 
 
 
-
+//-----------------------------------------------------------------------------
+// Available Colours
+//
 typedef
 	enum ttClr {
-		TTC_BLK = 0,
+		TTC_BLK = 0,  // Non-standard
 		TTC_RED = 1,
 		TTC_GRN = 2,
 		TTC_YEL = 3,
@@ -2204,16 +2720,80 @@ typedef
 	}
 ttClr_t;
 
+//-----------------------------------------------------------------------------
+// 505x Control Codes  [qv. CONTROL CODE TABLES]
+//
+typedef
+	enum m7CC {
+		M7CC_x = 0;  //! todo
+	}
+m7CC_t;
+		
+//-----------------------------------------------------------------------------
+// 505x Control Codes  [qv. CONTROL CODE TABLES]
+//
+typedef
+	enum ttCC {
+		TTCC_NUL      = 0x00,
+		TTCC_A_BLK    = TTCC_NUL | TTC_BLK,
+		TTCC_A_RED    = TTCC_NUL | TTC_RED,
+		TTCC_A_GRN    = TTCC_NUL | TTC_GRN,
+		TTCC_A_YEL    = TTCC_NUL | TTC_YEL,
+		TTCC_A_BLU    = TTCC_NUL | TTC_BLU,
+		TTCC_A_MAG    = TTCC_NUL | TTC_MAG,
+		TTCC_A_CYN    = TTCC_NUL | TTC_CYN,
+		TTCC_A_WHT    = TTCC_NUL | TTC_WHT,
+
+		TTCC_FLASH    = 0x08,
+		TTCC_STEADY   = 0x09,
+		TTCC_BOX_ST   = 0x0A,
+		TTCC_BOX_ND   = 0x0B,
+		TTCC_HT_NRM   = 0x0C,
+		TTCC_HT_DBL   = 0x0D,
+		TTCC_S0       = 0x0E,
+		TTCC_S1       = 0x0F,
+
+		TTCC_DLE      = 0x10,
+		TTCC_G_BLK    = TTCC_DLE | TTC_BLK,
+		TTCC_G_RED    = TTCC_DLE | TTC_RED,
+		TTCC_G_GRN    = TTCC_DLE | TTC_GRN,
+		TTCC_G_YEL    = TTCC_DLE | TTC_YEL,
+		TTCC_G_BLU    = TTCC_DLE | TTC_BLU,
+		TTCC_G_MAG    = TTCC_DLE | TTC_MAG,
+		TTCC_G_CYN    = TTCC_DLE | TTC_CYN,
+		TTCC_G_WHT    = TTCC_DLE | TTC_WHT,
+
+		TTCC_CONCEAL  = 0x18,
+		TTCC_CONTIG   = 0x19,
+		TTCC_SPACED   = 0x1A,
+		TTCC_ESC      = 0x1B,
+		TTCC_BG_BLK   = 0x1C,
+		TTCC_BG_NEW   = 0x1D,
+		TTCC_GR_HOLD  = 0x1E,
+		TTCC_GR_REL   = 0x1F,
+
+		TTCC_MASK_FN  = 0x08,
+		TTCC_MASK_CLR = 0x07,
+		TTCC_MASK_GFX = 0x10,
+	}
+ttCC_t;
+
+//-----------------------------------------------------------------------------
+// Box state
+// Box requires TWO ON|OFF Control Codes to affect change
+//
 typedef
 	enum ttBox {
 		TTB_OFF,
 		TTB_ST1,
-		TTB_ST2,
+		TTB_ON,
 		TTB_ND1,
-		TTB_ND2,
 	}
 ttBox_t;
 
+//-----------------------------------------------------------------------------
+// Fastext options
+//
 typedef
 	struct fastext {
 		char     title[10];
@@ -2222,20 +2802,26 @@ typedef
 	}
 fastext_t;
 
+//-----------------------------------------------------------------------------
+// Mullard 505x variants
+//
 typedef
 	enum lang505x {
-		LANG505X_UK    =  0,
-		LANG505X_DE    =  1,
-		LANG505X_SW    =  2,
-		LANG505X_IT    =  3,
-		LANG505X_BE    =  4,
-		LANG505X_US    =  5,
-		LANG505X_HE    =  6,
-		LANG505X_RU    =  7,
-		LANG505X_MODE7 = 99,
+		LANG505X_UK    =  0,  // 5050 - English (UK)
+		LANG505X_DE    =  1,  // 5051 - German
+		LANG505X_SW    =  2,  // 5052 - Swedish
+		LANG505X_IT    =  3,  // 5053 - Italian
+		LANG505X_BE    =  4,  // 5054 - Belgian
+		LANG505X_US    =  5,  // 5055 - US ASCII
+		LANG505X_HE    =  6,  // 5056 - Hebrew
+		LANG505X_RU    =  7,  // 5057 - Cyrillic
+		LANG505X_MODE7 = 99,  // Acorn BBC Micro implementation of the 5050
 	}
 lang505x_t;
 
+//-----------------------------------------------------------------------------
+// 505x Emulation Driver details
+//
 typedef
 	struct teletext {
 		struct feat {  // Features
@@ -2287,12 +2873,14 @@ teletext_t;
 
 teletext_t  tt;
 
-void  505x_setLang (lang505x_t lang)
+//+============================================================================
+// Set Language
+//
+int  505x_setLang (lang505x_t lang)
 {
 	gfx_low  = @font@;
 	gfx_high = @font@;
 	switch ((tt.cs.m505x = lang)) {
-		default:
 		case LANG505X_UK:
 			alpha_low  = @font@;
 			alpha_med  = @font@;
@@ -2334,22 +2922,29 @@ void  505x_setLang (lang505x_t lang)
 			alpha_high = @font@;
 			break;
 		case LANG505X_MODE7:  // As used by the Acorn BBC Micro
-			gfx_low    = @font@;  // 128 Glyphs each
-			gfx_high   = @font@;  // ...
-			alpha_low  = @font@;  // ...
-			alpha_high = @font@;  // ...
+			gfx_low    = @font@;  // 127 Glyphs (0x7F is CC:DEL)
+			gfx_high   = @font@;  // 128 Glyphs
+			alpha_low  = @font@;  // 127 Glyphs (0x7F is CC:DEL)
+			alpha_high = @font@;  // 128 Glyphs
 			break;
+		default:
+			return ERR_BAD_LANG;
 	}
+
+	return ERR_OK_LANG;
 }
 
-void  505x_LineRst (void)
+//+============================================================================
+// Reset for new character line
+//
+int  505x_lineRst (void)
 {
 /*
 	int y         = tt.sm.y
 	memset(&tt.sm, 0, sizeof(tt.sm));
 	tt.sm.y       = y;
 	tt.sm.holdChr = 0x20;
-	
+
 */
 	tt.sm.x       = 0;
 	tt.sm.clrFg   = TTC_WHT;
@@ -2362,38 +2957,235 @@ void  505x_LineRst (void)
 	tt.sm.hold    = false;
 	tt.sm.holdChr = 0x20;
 	tt.sm.holdSpc = false;
-	tt.sm.box     = false;
+	tt.sm.box     = TTB_OFF;
+
+	return ERR_OK_LINE;
 }
 
-void  505x_pageRst (void)
+//+============================================================================
+// Reset Page
+//
+int  505x_pageRst (void)
 {
 	tt.sm.y = 0;
-	505x_lineRst();
+	(void)505x_lineRst();
+
+	return ERR_OK_PAGE;
 }
 
-void  505x_hwRst (void)
+//+============================================================================
+// Reset Hardware
+//
+int  505x_hwRst (void)
 {
 	memset(&tt.hw, 0, sizeof(tt.hw)):
-	pageRst();
+	(void)pageRst();
+
+	return ERR_OK_HW;
 }
 
-void  505x_init (int w,  int h,  bool blkEn,  bool fastext,  lang505x_t lang)
+//+============================================================================
+// Initialise Driver
+//
+int  505x_init (int w,  int h,  bool blkEn,  bool fastext,  lang505x_t lang)
 {
+	int  err = ERR_UNKNOWN;
+
 	tt.feat.w       = w;        // VDU columns
 	tt.feat.h       = h;        // VDU rows
 	tt.feat.blkEn   = blkEn;    // Black Ink Available
 	tt.feat.fastext = fastext;  // Fastext support
-	
-	505x_hwRst();
 
-	505x_setLang(lang);
+	(void)505x_hwRst();
+
+	if ((err = 505x_setLang(lang)) != ERR_OK_LANG)  return err ;
+
+	return ERR_OK_INIT;
 }
-	
-	
-	
-	
-	
-	
+
+//+============================================================================
+// Show CHR in Mode-7 stylee
+//
+int  505x_showMode7 (uint8_t chr)
+{
+	return ERR_BAD_LANG;  //! not written yet - return a suitable error
+}
+
+//+============================================================================
+// Handle Control Codes
+//
+// [qv. CONTROL CODE TABLES]
+//
+// ,---------------------------------------------------------------------.
+// | 505x  | Function      | Reference (qv.)                  | Sequence |
+// |       |               |                                  |          |
+// |=======|===============|==================================|==========|
+// |  00   | NUL           | Some chips map this to ALPHA_BLK | hg,CC,H- |
+// |  01   | ALPHA_RED     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+// |  02   | ALPHA_GRN     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+// |  03   | ALPHA_YEL     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+// |  04   | ALPHA_BLU     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+// |  05   | ALPHA_MAG     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+// |  06   | ALPHA_CYN     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+// |  07   | ALPHA_WHT     | [GLYPH COLOUR SELECTION]         | hg,CC,H- |
+// |-------|---------------|----------------------------------|----------|
+// |  08   | ATTR_FLASH    | [FLASHING GLYPHS]                | hg,CC *1 |
+// |  09   | ATTR_STEADY   | [FLASHING GLYPHS]                | CC,hg *1 |
+// |  0A   | BOX_END       | [BOXES]                          | hg,CC    |
+// |  0B   | BOX_START     | [BOXES]                          | hg,CC    |
+// |  0C   | HEIGHT_NORMAL | [DOUBLE HEIGHT]                  | hg,CC *2 |
+// |  0D   | HEIGHT_DOUBLE | [DOUBLE HEIGHT]                  | hg,CC *2 |
+// |  0E   | S0            | -                                | -        |
+// |  0F   | S1            | -                                | -        |
+// |-------|---------------|----------------------------------|----------|
+// |  10   | DLE           | Some chips map this to GRAPH_BLK | hg,CC    |
+// |  11   | GRAPH_RED     | [GLYPH COLOUR SELECTION]         | hg,CC    |
+// |  12   | GRAPH_GRN     | [GLYPH COLOUR SELECTION]         | hg,CC    |
+// |  13   | GRAPH_YEL     | [GLYPH COLOUR SELECTION]         | hg,CC    |
+// |  14   | GRAPH_BLU     | [GLYPH COLOUR SELECTION]         | hg,CC    |
+// |  15   | GRAPH_MAG     | [GLYPH COLOUR SELECTION]         | hg,CC    |
+// |  16   | GRAPH_CYN     | [GLYPH COLOUR SELECTION]         | hg,CC    |
+// |  17   | GRAPH_WHT     | [GLYPH COLOUR SELECTION]         | hg,CC    |
+// |-------|---------------|----------------------------------|----------|
+// |  18   | DISP_CONCEAL  | [CONCEAL MODE]                   | hg,CC    |
+// |  19   | GRAPH_CONTIG  | [GRAPHICS MODE]                  | CC,hg *3 |
+// |  1A   | GRAPH_SPACED  | [GRAPHICS MODE]                  | CC,hg *3 |
+// |  1B   | ESC           | -                                | -        |
+// |  1C   | PAPER_BLACK   | [BACKGROUND COLOUR SELECTION]    | CC,hg    |
+// |  1D   | PAPER_NEW     | [BACKGROUND COLOUR SELECTION]    | CC,hg    |
+// |  1E   | GRAPH_HOLD    | [GRAPHICS MODE]                  | CC,hg    |
+// |  1F   | GRAPH_RELEASE | [GRAPHICS MODE]                  | hg,CC    |
+// `---------------------------------------------------------------------'
+//
+// The sequence has been inferred from (conflicting) online editors
+// ...it may be wrong :(
+//
+int  505x_showCC (uint8_t chr)
+{
+	bool  last = true;
+
+	if ((chr == TTCC_S0) || (chr == TTCC_S1) || (chr == TTCC_ESC))  return ERR_CC_BAD ;
+
+	// Held Glyph first (not last)
+	if (! ((chr == TTCC_STEADY) || (INRANGE(chr, TTCC_CONTIG, TTCC_GR_HOLD)) ) {
+		505x_showHeld();
+		last = false;
+	}
+
+	// Colour
+	if (!(chr & TTCC_MASK_FN)) {
+		uint8_t  clr = chr & TTCC_MASK_CLR;
+
+		if ((clr == TTC_BLK) && !tt.feat.blkEn)  return ERR_CC_NOBLK ;
+		tt.sm.clrFg = clr;
+
+		if (chr & TTCC_MASK_GFX)   tt.sm.gfx = true ;
+		else                       tt.sm.gfx = (tt.sm.hold = false) ;
+
+	} else {
+		switch (chr) {
+			case TTCC_CONCEAL :  tt.sm.conceal = true;         break ;
+
+			case TTCC_FLASH   :  tt.sm.flash   = true;         break ;
+			case TTCC_STEADY  :  tt.sm.flash   = false;        break ;
+
+			case TTCC_CONTIG  :  tt.sm.spaced  = false;        break ;
+			case TTCC_SPACED  :  tt.sm.spaced  = true;         break ;
+							  
+			case TTCC_BG_BLK  :  tt.sm.clrBg   = TTC_BLK;      break ;
+			case TTCC_BG_NEW  :  tt.sm.clrBg   = tt.sm.clrFg;  break ;
+							  
+			case TTCC_GR_HOLD :  tt.sm.hold    = true;         break ;
+			case TTCC_GR_REL  :  tt.sm.hold    = false;        break ;
+
+			case TTCC_HT_NRM  :
+				if (tt.sm.dblH)   tt.sm.hold = false ;  // Change? Release Hold
+				tt.sm.dblH = false;                     // Single
+				break;
+			case TTCC_HT_DBL  :
+				if (!tt.sm.dblH)  tt.sm.hold = false ;  // Change? Release Hold
+				tt.sm.dblH = true;                      // Double
+				break;
+
+			case TTCC_BOX_ST  :
+				if ((tt.sm.box != TTB_ST1) && (tt.sm.box != TTB_ON))
+					tt.sm.box = TTB_ST1;
+				else
+					tt.sm.box = TTB_ON;
+				break;
+			case TTCC_BOX_ND  :
+				if ((tt.sm.box != TTB_ND1) && (tt.sm.box != TTB_OFF))
+					tt.sm.box = TTB_ND1;
+				else
+					tt.sm.box = TTB_OFF;
+				break;
+		}
+	}
+
+	// Held Glyph last
+	if (last)  505x_showHeld() ;
+}
+
+//+============================================================================
+// Show CHR
+//
+int  505x_showChr (uint8_t chr)
+{
+	int       err = ERR_UNKNOWN;
+	glyph_t*  gl  = NULL;
+
+	// Mode-7 has a separate (8-bit) handler
+	if (tt.cs.m505x == LANG505X_MODE7)  return 505x_showMode7() ;
+
+	// 505x is a 7-bit Character Set
+	if      (chr >  0x7F)  return ERR_BAD_GLYPH ;
+
+	// {00..1F} are Control Codes
+	if      (chr <= 0x1F)  err = 5050x_showCC(chr) ;
+	// {20..7F} are Printable Glyphs
+	else if (chr <= 0x3F)  gl = (tt.sm.gfx) ? tt.cs.gfx_low  : tt.cs.alpha_low ;
+	else if (chr <= 0x5F)  gl =                                tt.cs.alpha_med ;
+	else                   gl = (tt.sm.gfx) ? tt.cs.gfx_high : tt.cs.alpha_high ;
+	if ((err = 505x_render(gl, (chr & 0x1F))) != ERR_OK
+
+	if (++tt.sm.x >= tt.feat.w) {
+		if (++tt.sm.y >= tt.feat.h)  return 505x_pageRst() ;
+		else                         return 505x_lineRst() ;
+	}
+
+	return ERR_OK_CHR;
+}
+
+
+    ..###.    ....######..    ....'##'##'##'..    ....'##=##=##'..
+    .#...#    ....######..    ....'##'##'##'..    ..../##=##=##\..
+    .....#    ..##......##    ..##'..'..'..'##    ..##/..'..'..\##
+    ...##.    ..##......##    ..##'..'..'..'##    ..##'..'..'..'##
+    ..#...    ..........##    ....'..'..'..'##    ....'..'..'..'##
+    .#....    ..........##    ....'..'..'..'##    ....'..'..'../##
+    .#####    ......####..    ....'..'##'##'..    ....'..'##=##/..
+    ......    ......####..    ....'..'##'##'..    ....'../##=##'..
+    ......    ....##......    ....'##'..'..'..    ....'##/..'..'..
+    ......    ....##......    ....'##'..'..'..    ..../##'..'..'..
+              ..##........    ..##'..'..'..'..    ..##/..'..'..'..
+              ..##........    ..##'..'..'..'..    ..##'..'..'..'..
+              ..##########    ..##'##'##'##'##    ..##=##=##=##=##
+              ..##########    ..##'##'##'##'##    ..##=##=##=##=##
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+              ............    ....'..'..'..'..    ....'..'..'..'..
+
+uint8_t   gIn [  10][  6];
+uint16_t  gOut[2*10][2*6];
+
+for (int i = 0;  i < 10;  i++) {
+	glyph[i] = glyph[i] 
+}
 
 
 
@@ -2601,162 +3393,4 @@ else if (mode == GRAPHICS)
 
 Mode-7 glyph maps
 need to decide how to handle this without insane amounts of repeated data
- ,----------------------.
-(  GLYPH MAP - GRAPHICS  )
- `----------------------'
 
-In my opinion, the Graphics Mode makes most sense if the top bit [2^7 = 0x80] is SET [1] ....Ie. {0x80..0xFF}
-
-_______________________________________________________________________________________________________________________________________
-      +0      +1      +2      +3      +4      +5      +6      +7      +8      +9      +A      +B      +C      +D      +E      +F     0x|    Lo       High
-------------------------------------------------------------------------------------------------------------------------------------+  |
-																																	|  |
-<xglyphMap id=5050_Mode7_Gfx_Low mode=gfx cnt=96 chr0=32>
-<xglyphMap id=5050_Mode7_Gfx_High mode=gfx cnt=96 chr0=160>
-
-	......  ###...  ...###  +----+  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ..#.#.    ######
-	......  ###...  ...###  |    |  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ..#.#.    ######
-	......  ###...  ...###  |    |  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  .#####    ######
-	......  ......  ......  |    |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ..#.#.    ......
-	......  ......  ......  | 23 |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |20|  .#####    ......
-	......  ......  ......  | A3 |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |A0|  ..#.#.    ......
-	......  ......  ......  |    |  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ..#.#.    ......
-	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
-	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
-	......  ......  ......  +----+  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
-																																	|  |
-	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |
-	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |
-	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |30|
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |B0|
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |
-	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  |  |
-	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  |  |
-	###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  ###...  |  |
-																																	|  |
-	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.  |  |
-	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#  |  |
-	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#  |  |
-	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#  |  |
-	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#  |40|
-	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#  |C0|
-	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-																																	|  |
-	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  +----+  |  |  ......    ..#.#.
-	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  |    |  |  |  ......    ..#.#.
-	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  |    |  |  |  ......    .#####
-	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  |    |  |  |  ......    ..#.#.
-	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  | 5F |  |50|  ......    .#####
-	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  | DF |  |D0|  ......    ..#.#.
-	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  |    |  |  |  ......    ..#.#.
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  |    |  |  |  ...###    ......
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  |    |  |  |  ...###    ......
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  +----+  |  |  ...###    ......
-																																	|  |
-	+----+  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ######    ......
-	|    |  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ######    ......
-	|    |  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  |  |  ######    ......
-	|    |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ......    ......
-	| 60 |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |60|  ......    ......
-	| E0 |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |E0|  ......    ......
-	|    |  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  ######  |  |  ......    ......
-	|    |  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  |  |  ......    ...###
-	|    |  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  |  |  ......    ...###
-	+----+  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  ...###  |  |  ......    ...###
-																																	|  |
-	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  +----+  |  |            ######
-	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  |    |  |  |            ######
-	......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  ######  ......  ###...  ...###  |    |  |  |            ######
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  |    |  |  |            ######
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  |    |  |70|            ######
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  | FF |  |F0|            ######
-	......  ......  ......  ......  ###...  ###...  ###...  ###...  ...###  ...###  ...###  ...###  ######  ######  ######  |    |  |  |            ######
-	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  |    |  |  |            ######
-	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  |    |  |  |            ######
-	######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  ######  +----+  |  |            ######
-
-</xglyphMap>
-
-
- ,--------------------------.
-(  GLYPH MAP - ALPHANUMERIC  )
- `--------------------------'
-_______________________________________________________________________________________________________________________________________
-      +0      +1      +2      +3      +4      +5      +6      +7      +8      +9      +A      +B      +C      +D      +E      +F     0x|    Lo       High
-------------------------------------------------------------------------------------------------------------------------------------+  |
-																																	|  |
-<xglyphMap id=5050_Mode7_Alphafx_Low mode=alpha cnt=96 chr0=32>
-<xglyphMap id=5050_Mode7_Alphafx_High mode=alpha cnt=96 chr0=160>
-
-	......  ...#..  ..#.#.  +----+  ..###.  .##...  ..#...  ...#..  ....#.  ..#...  ...#..  ......  ......  ......  ......  ......  |  |  ..#.#.    ...##.
-	......  ...#..  ..#.#.  |    |  .#.#.#  .##..#  .#.#..  ...#..  ...#..  ...#..  .#.#.#  ...#..  ......  ......  ......  ......  |  |  ..#.#.    ..#..#
-	......  ...#..  ..#.#.  |    |  .#.#..  ....#.  .#.#..  ...#..  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  .....#  |  |  .#####    ..#...
-	......  ...#..  ......  |    |  ..###.  ...#..  ..#...  ......  ..#...  ....#.  ...#..  .#####  ......  ..###.  ......  ....#.  |  |  ..#.#.    .###..
-	......  ...#..  ......  | 23 |  ...#.#  ..#...  .#.#.#  ......  ..#...  ....#.  ..###.  ...#..  ......  ......  ......  ...#..  |20|  .#####    ..#...
-	......  ... ..  ......  | A3 |  .#.#.#  .#..##  .#..#.  ......  ...#..  ...#..  .#.#.#  ...#..  ...#..  ......  ......  ..#...  |A0|  ..#.#.    ..#...
-	......  ...#..  ......  |    |  ..###.  ....##  ..##.#  ......  ....#.  ..#...  ...#..  ......  ...#..  ......  ...#..  .#....  |  |  ..#.#.    .#####
-	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......  |  |  ......    ......
-	......  ......  ......  |    |  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
-	......  ......  ......  +----+  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
-																																	|  |
-	...#..  ...#..  ..###.  .#####  ....#.  .#####  ...##.  .#####  ..###.  ..###.  ......  ......  ....#.  ......  .#....  ..###.  |  |
-	..#.#.  ..##..  .#...#  .....#  ...##.  .#....  ..#...  .....#  .#...#  .#...#  ......  ......  ...#..  ......  ..#...  .#...#  |  |
-	.#...#  ...#..  .....#  ....#.  ..#.#.  .####.  .#....  ....#.  .#...#  .#...#  ...#..  ...#..  ..#...  .#####  ...#..  ....#.  |  |
-	.#...#  ...#..  ...##.  ...##.  .#..#.  .....#  .####.  ...#..  ..###.  ..####  ......  ......  .#....  ......  ....#.  ...#..  |  |
-	.#...#  ...#..  ..#...  .....#  .#####  .....#  .#...#  ..#...  .#...#  .....#  ......  ......  ..#...  .#####  ...#..  ...#..  |30|
-	..#.#.  ...#..  .#....  .#...#  ....#.  .#...#  .#...#  ..#...  .#...#  ....#.  ......  ...#..  ...#..  ......  ..#...  ......  |B0|
-	...#..  ..###.  .#####  ..###.  ....#.  ..###.  ..###.  ..#...  ..###.  ..##..  ...#..  ...#..  ....#.  ......  .#....  ...#..  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ..#...  ......  ......  ......  ......  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-																																	|  |
-	..###.  ...#..  .####.  ..###.  .####.  .#####  .#####  ..###.  .#...#  ..###.  .....#  .#...#  .#....  .#...#  .#...#  ..###.  |  |
-	.#...#  ..#.#.  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .....#  .#..#.  .#....  .##.##  .#...#  .#...#  |  |
-	.#.###  .#...#  .#...#  .#....  .#...#  .#....  .#....  .#....  .#...#  ...#..  .....#  .#.#..  .#....  .#.#.#  .##..#  .#...#  |  |
-	.#.#.#  .#...#  .####.  .#....  .#...#  .####.  .####.  .#....  .#####  ...#..  .....#  .##...  .#....  .#...#  .#.#.#  .#...#  |  |
-	.#.###  .#####  .#...#  .#....  .#...#  .#....  .#....  .#..##  .#...#  ...#..  .....#  .#.#..  .#....  .#...#  .#..##  .#...#  |40|
-	.#....  .#...#  .#...#  .#...#  .#...#  .#....  .#....  .#...#  .#...#  ...#..  .#...#  .#..#.  .#....  .#...#  .#...#  .#...#  |C0|
-	..###.  .#...#  .####.  ..###.  .####.  .#####  .#....  ..####  .#...#  ..###.  ..###.  .#...#  .#####  .#...#  .#...#  ..###.  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |
-																																	|  |
-	.####.  ..###.  .####.  ..###.  .#####  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  ......  .#....  ......  ......  +----+  |  |  ......    ..#.#.
-	.#...#  .#...#  .#...#  .#...#  ...#..  .#...#  .#...#  .#...#  .#...#  .#...#  .....#  ...#..  .#....  ...#..  ...#..  |    |  |  |  ......    ..#.#.
-	.#...#  .#...#  .#...#  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  ..#.#.  ....#.  ..#...  .#....  ....#.  ..###.  |    |  |  |  ......    .#####
-	.####.  .#...#  .####.  ..###.  ...#..  .#...#  ..#.#.  .#...#  ...#..  ...#..  ...#..  .#####  .#....  .#####  .#.#.#  |    |  |  |  .#####    ..#.#.
-	.#....  .#.#.#  .#.#..  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  ...#..  ..#...  ..#...  .#.##.  ....#.  ...#..  | 5F |  |50|  ......    .#####
-	.#....  .#..#.  .#..#.  .#...#  ...#..  .#...#  ...#..  .##.##  .#...#  ...#..  .#....  ...#..  .....#  ...#..  ...#..  | DF |  |D0|  ......    ..#.#.
-	.#....  ..##.#  .#...#  ..###.  ...#..  ..###.  ...#..  ..#.#.  .#...#  ...#..  .#####  ......  ....#.  ......  ......  |    |  |  |  ......    ..#.#.
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...#..  ......  ......  |    |  |  |  ......    ......
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ...###  ......  ......  |    |  |  |  ......    ......
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  +----+  |  |  ......    ......
-																																	|  |
-	+----+  ......  .#....  ......  .....#  ......  ....#.  ......  .#....  ...#..  ...#..  ..#...  ..##..  ......  ......  ......  |  |  ...##.    ......
-	|    |  ......  .#....  ......  .....#  ......  ...#..  ......  .#....  ......  ......  ..#...  ...#..  ......  ......  ......  |  |  ..#..#    ......
-	|    |  ..###.  .####.  ..####  ..####  ..###.  ...#..  ..####  .####.  ..##..  ...#..  ..#..#  ...#..  .##.#.  .####.  ..###.  |  |  ..#...    ......
-	|    |  .....#  .#...#  .#....  .#...#  .#...#  ..###.  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#  |  |  .###..    .#####
-	| 60 |  ..####  .#...#  .#....  .#...#  .#####  ...#..  .#...#  .#...#  ...#..  ...#..  ..##..  ...#..  .#.#.#  .#...#  .#...#  |60|  ..#...    ......
-	| E0 |  .#...#  .#...#  .#....  .#...#  .#....  ...#..  .#...#  .#...#  ...#..  ...#..  ..#.#.  ...#..  .#.#.#  .#...#  .#...#  |E0|  ..#...    ......
-	|    |  ..####  .####.  ..####  ..####  ..###.  ...#..  ..####  .#...#  ..###.  ...#..  ..#..#  ..###.  .#.#.#  .#...#  ..###.  |  |  .#####    ......
-	|    |  ......  ......  ......  ......  ......  ......  .....#  ......  ......  ...#..  ......  ......  ......  ......  ......  |  |  ......    ......
-	|    |  ......  ......  ......  ......  ......  ......  ..###.  ......  ......  ..#...  ......  ......  ......  ......  ......  |  |  ......    ......
-	+----+  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  |  |  ......    ......
-																																	|  |
-	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  .##...  ......  +----+  |  |            .#####
-	......  ......  ......  ......  ...#..  ......  ......  ......  ......  ......  ......  .#....  ..#.#.  ...#..  ...#..  |    |  |  |            .#####
-	.####.  ..####  ..#.##  ..####  ..###.  .#...#  .#...#  .#...#  .#...#  .#...#  .#####  .#....  ..#.#.  .##...  ......  |    |  |  |            .#####
-	.#...#  .#...#  ..##..  .#....  ...#..  .#...#  .#...#  .#...#  ..#.#.  .#...#  ....#.  .#....  ..#.#.  ...#..  .#####  |    |  |  |            .#####
-	.#...#  .#...#  ..#...  ..###.  ...#..  .#...#  ..#.#.  .#.#.#  ...#..  .#...#  ...#..  .#...#  ..#.#.  .##..#  ......  |    |  |70|            .#####
-	.#...#  .#...#  ..#...  .....#  ...#..  .#...#  ..#.#.  .#.#.#  ..#.#.  .#...#  ..#...  ....##  ..#.#.  ....##  ...#..  | FF |  |F0|            .#####
-	.####.  ..####  ..#...  .####.  ....#.  ..####  ...#..  ..#.#.  .#...#  ..####  .#####  ...#.#  ..#.#.  ...#.#  ......  |    |  |  |            .#####
-	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  .....#  ......  ...###  ......  ...###  ......  |    |  |  |            ......
-	.#....  .....#  ......  ......  ......  ......  ......  ......  ......  ..###.  ......  .....#  ......  .....#  ......  |    |  |  |            ......
-	......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  ......  +----+  |  |            ......
-                                                                                                                                    
-</xglyphMap>
