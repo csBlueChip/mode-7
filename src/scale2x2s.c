@@ -79,7 +79,7 @@ int  scale2x2s (const glyph_t gIn,  int gfx,  uint16_t* gOut)
 //+============================================================================ =======================================
 
 //void  doFont (const glyph_t set[],  const int cnt,  FILE* fOut)
-int  doFont2x2s (const gset_t* gp,  FILE* fh)
+int  doFont2x2s (const gset_t* gp,  FILE* fhs)
 {
 	for (int n = 0;  n < gp->cnt;  n++) {
 		uint16_t  gOut[2*10];
@@ -88,12 +88,12 @@ int  doFont2x2s (const gset_t* gp,  FILE* fh)
 		(void)scale2x2s(gp->gly[n], gp->gfx, gOut);
 
 		if ((gp->chr0 +n >= 0x20) && (gp->chr0 +n <= 0x7E))
-			fprintf(fh,
+			fprintf(fhs,
 				"\t{ // [%d] CHR$(%d) '0x%X' '%c' ----------------------------------------\n",
 				n, gp->chr0 +n, gp->chr0 +n, gp->chr0 +n
 			);
 		else
-			fprintf(fh,
+			fprintf(fhs,
 				"\t{ // [%d] CHR$(%d) '0x%X' --------------------------------------------\n",
 				n, gp->chr0 +n, gp->chr0 +n
 			);
@@ -112,12 +112,12 @@ int  doFont2x2s (const gset_t* gp,  FILE* fh)
 				}
 			}
 
-			fprintf(fh,
+			fprintf(fhs,
 				"\t\t0x%04X%c /* %s */\n",
 				w, ((r == 19) ? ' ' : ','), asc
 			);
 		}
-		fprintf(fh, "\t}%s\n", ((n == gp->cnt -1) ? "" : ","));
+		fprintf(fhs, "\t}%s\n", ((n == gp->cnt -1) ? "" : ","));
 
 	}
 	return 1;
@@ -126,20 +126,67 @@ int  doFont2x2s (const gset_t* gp,  FILE* fh)
 //+============================================================================ =======================================
 int  main (void)
 {
-	char*  dir = "ttxFonts2x2s";
+	char*  dir     = "ttxFonts2x2s";
+	char   fn[128] = {0};
+
+	FILE*  fhh     = NULL;
+	FILE*  fhc     = NULL;
+
+	sprintf(fn, "%s/ttxFonts_2x2s.h", dir);  // yep, I know!
+	if (!(fhh = fopen(fn, "wb"))) {
+		fprintf(fhh, "! File create error ¦%s¦\n", fn);
+		return 1;
+	}
+
+	fprintf(fhh,
+		"#ifndef TTXFONTS_2X2S_H\n"
+		"#define TTXFONTS_2X2S_H\n"
+		"\n"
+		"#include <stdint.h>\n"
+		"#include <stdbool.h>\n"
+		"\n"
+		"typedef  uint16_t  glyph2x2s_t[20];\n"
+		"\n"
+		"typedef\n"
+		"	struct gset2x2s {\n"
+		"		const char*         name;  // Textual name\n"
+		"		const bool          gfx;   // true=graphics; false=alpha\n"
+		"		const int           cnt;   // number of CHRs in set\n"
+		"		const int           chr0;  // offset of CHR(0)\n"
+		"		const glyph2x2s_t*  gly;   // Glyph data\n"
+		"	}\n"
+		"gset2x2s_t;\n"
+		"\n"
+		"extern  const gset2x2s_t   gset2x2s[];\n"
+		"extern  const int          gset2x2sCnt;\n"
+		"\n"
+	);
+
+	sprintf(fn, "%s/ttxFonts_2x2s.c", dir);  // yep, I know!
+	if (!(fhc = fopen(fn, "wb"))) {
+		fprintf(fhc, "! File create error ¦%s¦\n", fn);
+		return 1;
+	}
+
+	fprintf(fhc,
+		"#include <stddef.h>\n"
+		"\n"
+		"#include \"ttxFonts_2x2s.h\"\n"
+		"\n"
+		"const gset_t  gset[] = {\n"
+	);
 
 	for (const gset_t* gp = gset; gp->gly;  gp++) {
-		FILE*      fh      = NULL;
-		char       fn[128] = {0};
+		FILE*      fhs      = NULL;
 
 		printf("# [2x2s] %s\n", gp->name);
 		sprintf(fn, "%s/%s_2x2s.c", dir, gp->name);  // yep, I know!
-		if (!(fh = fopen(fn, "wb"))) {
-			fprintf(fh, "! File create error ¦%s¦\n", fn);
-			return 0;
+		if (!(fhs = fopen(fn, "wb"))) {
+			fprintf(fhs, "! File create error ¦%s¦\n", fn);
+			return 2;
 		}
 
-		fprintf(fh,
+		fprintf(fhs,
 			"// Teletext Glyph Map: %s_2x2s\n"
 			"// Mode: %s,  Base offset: %d (0x%02X)\n"
 			"\n"
@@ -147,16 +194,36 @@ int  main (void)
 			"\n"
 			"const glyph2x2s_t  %s_2x2s[%d] = {\n",
 			gp->name, 
-			gp->gfx?"gfx":"alpha", gp->chr0, gp->chr0, 
+			gp->gfx?"gfx":"alpha", gp->chr0, gp->chr0,
 			gp->name, gp->cnt
 		);
 
-		doFont2x2s(gp, fh);
+		doFont2x2s(gp, fhs);
 
-		fprintf(fh, "};\n");
+		fprintf(fhs, "};\n");
+		fclose(fhs);
 
-		fclose(fh);
+		fprintf(fhh, "extern  const glyph2x2s_t  %s_2x2s[];\n", gp->name);
+
+		fprintf(fhc, "\t{\"%s_2x2s\", %s, %d, %d, %s_2x2s},\n",
+			gp->name, (gp->gfx)?"true":"false", gp->cnt, gp->chr0, gp->name
+		);
+
 	}
+
+	fprintf(fhc,
+		"\t{NULL, false, 0, 0, NULL}  // NULL terminated table\n"
+		"};\n"
+		"\n"
+		"const int  gset2x2sCnt = %d;  // EXcluding NULL terminator\n", gsetCnt
+	);
+	fclose(fhc);
+
+	fprintf(fhh,
+		"\n"
+		"#endif // TTXFONTS_2X2S_H\n"
+	);
+	fclose(fhh);
 
 	return 0;
 }
