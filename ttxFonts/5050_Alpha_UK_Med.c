@@ -1,9 +1,9 @@
 // Teletext Glyph Map: 5050_Alpha_UK_Med
-// Mode: alpha,  Base offset: 48 (30)
+// Mode: alpha,  Base offset: 48 (0x30)
 
-#include <stdint.h>
+#include "ttxFonts.h"
 
-const uint8_t  5050_Alpha_UK_Med[32][10] = {
+const glyph_t  ttxf_5050_Alpha_UK_Med[32] = {
 	{ // [0] CHR$(48) '\x30' '0' ----------------------------------------
 	  0x0E, /* ..###. */
 	  0x11, /* .#...# */

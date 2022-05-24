@@ -1,9 +1,9 @@
 // Teletext Glyph Map: 5050_Mode7_Gfx_Low
-// Mode: gfx,  Base offset: 32 (20)
+// Mode: gfx,  Base offset: 32 (0x20)
 
-#include <stdint.h>
+#include "ttxFonts.h"
 
-const uint8_t  5050_Mode7_Gfx_Low[95][10] = {
+const glyph_t  ttxf_5050_Mode7_Gfx_Low[95] = {
 	{ // [0] CHR$(32) '\x20' ' ' ----------------------------------------
 	  0x00, /* ...... */
 	  0x00, /* ...... */
@@ -1143,17 +1143,5 @@ const uint8_t  5050_Mode7_Gfx_Low[95][10] = {
 	  0x3F, /* ###### */
 	  0x3F, /* ###### */
 	  0x3F  /* ###### */
-	}	{ // [95] CHR$(127) '\x7F' --------------------------------------------
-	  0x3F, /*  */
-	  0x3F, /*  */
-	  0x3F, /*  */
-	  0x3F, /*  */
-	  0x3F, /*  */
-	  0x3F, /* 70 */
-	  0x3F, /*  */
-	  0x3F, /*  */
-	  0x3F, /*  */
-	  0x3F  /*  */
-	},
-
+	}
 };

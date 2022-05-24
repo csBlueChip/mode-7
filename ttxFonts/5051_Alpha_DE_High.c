@@ -1,9 +1,9 @@
 // Teletext Glyph Map: 5051_Alpha_DE_High
-// Mode: alpha,  Base offset: 96 (60)
+// Mode: alpha,  Base offset: 96 (0x60)
 
-#include <stdint.h>
+#include "ttxFonts.h"
 
-const uint8_t  5051_Alpha_DE_High[32][10] = {
+const glyph_t  ttxf_5051_Alpha_DE_High[32] = {
 	{ // [0] CHR$(96) '\x60' '`' ----------------------------------------
 	  0x06, /* ...##. */
 	  0x09, /* ..#..# */

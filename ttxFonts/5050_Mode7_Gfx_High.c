@@ -1,9 +1,9 @@
 // Teletext Glyph Map: 5050_Mode7_Gfx_High
-// Mode: gfx,  Base offset: 160 (A0)
+// Mode: gfx,  Base offset: 160 (0xA0)
 
-#include <stdint.h>
+#include "ttxFonts.h"
 
-const uint8_t  5050_Mode7_Gfx_High[96][10] = {
+const glyph_t  ttxf_5050_Mode7_Gfx_High[96] = {
 	{ // [0] CHR$(160) '\xA0' --------------------------------------------
 	  0x00, /* ...... */
 	  0x00, /* ...... */

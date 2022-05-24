@@ -1,9 +1,9 @@
 // Teletext Glyph Map: 505x_Gfx_Sep_High
-// Mode: gfx,  Base offset: 96 (60)
+// Mode: gfx,  Base offset: 96 (0x60)
 
-#include <stdint.h>
+#include "ttxFonts.h"
 
-const uint8_t  505x_Gfx_Sep_High[32][10] = {
+const glyph_t  ttxf_505x_Gfx_Sep_High[32] = {
 	{ // [0] CHR$(96) '\x60' '`' ----------------------------------------
 	  0x00, /* ...... */
 	  0x00, /* ...... */

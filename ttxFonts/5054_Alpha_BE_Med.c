@@ -1,9 +1,9 @@
 // Teletext Glyph Map: 5054_Alpha_BE_Med
-// Mode: alpha,  Base offset: 64 (40)
+// Mode: alpha,  Base offset: 64 (0x40)
 
-#include <stdint.h>
+#include "ttxFonts.h"
 
-const uint8_t  5054_Alpha_BE_Med[32][10] = {
+const glyph_t  ttxf_5054_Alpha_BE_Med[32] = {
 	{ // [0] CHR$(64) '\x40' '@' ----------------------------------------
 	  0x08, /* ..#... */
 	  0x04, /* ...#.. */
