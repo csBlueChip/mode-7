@@ -91,7 +91,7 @@ doit () {
 ## ENTRY POINT
 ##
 
-src=505xMaps.txt
+src=../505xMaps.txt
 dir=ttxFonts
 
 rm -rf $dir
