@@ -124,7 +124,7 @@ int  main (void)
 		"#include <stdint.h>\n"
 		"#include <stdbool.h>\n"
 		"\n"
-		"typedef  uint16_t  glyph3x3s_t[20];\n"
+		"typedef  uint32_t  glyph3x3s_t[30];\n"
 		"\n"
 		"typedef\n"
 		"	struct gset3x3s {\n"

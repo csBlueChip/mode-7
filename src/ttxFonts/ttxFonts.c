@@ -4,8 +4,8 @@
 
 const gset_t  gset[] = {
 	{"5050_Alpha_UK_Low", false, 32, 32, ttxf_5050_Alpha_UK_Low},
-	{"5050_Alpha_UK_Med", false, 32, 48, ttxf_5050_Alpha_UK_Med},
-	{"5050_Alpha_UK_High", false, 32, 48, ttxf_5050_Alpha_UK_High},
+	{"5050_Alpha_UK_Med", false, 32, 64, ttxf_5050_Alpha_UK_Med},
+	{"5050_Alpha_UK_High", false, 32, 96, ttxf_5050_Alpha_UK_High},
 	{"5051_Alpha_DE_Low", false, 32, 32, ttxf_5051_Alpha_DE_Low},
 	{"5051_Alpha_DE_Med", false, 32, 64, ttxf_5051_Alpha_DE_Med},
 	{"5051_Alpha_DE_High", false, 32, 96, ttxf_5051_Alpha_DE_High},

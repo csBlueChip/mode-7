@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef  uint16_t  glyph3x3s_t[20];
+typedef  uint32_t  glyph3x3s_t[30];
 
 typedef
 	struct gset3x3s {
