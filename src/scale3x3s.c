@@ -93,7 +93,7 @@ int  doFont3x3s (const gset_t* gp,  FILE* fhs)
 
 			fprintf(fhs,
 				"\t\t0x%06X%c /* %s */\n",
-				d, ((r == 19) ? ' ' : ','), asc
+				d, ((r == 29) ? ' ' : ','), asc
 			);
 		}
 		fprintf(fhs, "\t}%s\n", ((n == gp->cnt -1) ? "" : ","));
